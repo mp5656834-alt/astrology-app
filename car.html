@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Destiny Nexus | Horoscope • Numerology • Future Telling</title>
-  <meta name="description" content="Destiny Nexus - Mystic Insights, Infinite Possibilities. Vedic Kundli, Western Horoscope, Numerology, Month Monster, Sacred Tattoo & Destiny Coordinates." />
+  <title>PROPHECY | Premium Astrology • Vedic Jyotish • Numerology Platform</title>
+  <meta name="description" content="PROPHECY - Professional Premium Astrology Platform. Accurate Vedic Kundli, Western Astrology, Nakshatra, Lagna, Kundali Milan, Marriage Compatibility, Numerology Reports & Life Periods." />
   <link rel="icon" type="image/jpeg" href="assets/destiny_nexus_logo.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,56 +12,75 @@
   <link rel="stylesheet" href="car.css" />
 </head>
 <body>
-  <!-- Ambient Cosmic Background -->
+  <div id="calculationTransition" class="calculation-transition hidden" role="status" aria-live="polite" aria-label="Preparing your PROPHECY reading">
+    <div class="transition-orbit"><span></span><span></span><span></span></div>
+    <p class="transition-kicker">PROPHECY / COSMIC ENGINE</p>
+    <h2>Aligning your chart</h2>
+    <p id="transitionMessage">Converting birth details into celestial coordinates...</p>
+    <div class="transition-progress"><span id="transitionProgressBar"></span></div>
+    <strong id="transitionCountdown">10</strong>
+  </div>
   <div class="stars-bg"></div>
   <div class="glow-orb orb-gold"></div>
   <div class="glow-orb orb-magenta"></div>
   <div class="glow-orb orb-cyan"></div>
 
   <div class="app-wrapper">
-    <!-- Top Navigation Header -->
+    <!-- ============ HEADER + MAIN NAV ============ -->
     <header class="app-header glass-card">
       <div class="brand">
         <div class="brand-logo-wrap">
-          <img src="assets/destiny_nexus_logo.jpg" alt="Destiny Nexus Emblem" class="brand-logo-img" />
+          <img src="assets/destiny_nexus_logo.jpg" alt="PROPHECY Emblem" class="brand-logo-img" />
+          <span class="logo-name-overlay">PROPHECY</span>
         </div>
         <div class="brand-text">
-          <h1 class="brand-title">DESTINY NEXUS</h1>
-          <p class="brand-subtitle">Horoscope • Numerology • Future Telling</p>
+          <h1 class="brand-title">PROPHECY</h1>
+          <p class="brand-subtitle">Premium Astrology • Jyotish • Numerology</p>
         </div>
       </div>
 
-      <!-- Navigation Links (Active after calculation) -->
-      <nav id="topNavMenu" class="header-nav hidden">
-        <button class="nav-link-btn active" data-target="sectionDestinyLoc">🧭 Where is My Destiny?</button>
-        <button class="nav-link-btn" data-target="sectionKundli">🕉️ Visit Kundali</button>
-        <button class="nav-link-btn" data-target="sectionMonsterTattoo">👹 Monster & Tattoo</button>
-        <button class="nav-link-btn" data-target="sectionLifeHistory">📜 Life History</button>
-        <button class="nav-link-btn" data-target="sectionFutureOracle">🔮 Future Oracle</button>
-        <button id="navResetBtn" class="btn-reset" title="New Reading">⚡ New</button>
-      </nav>
+      <div class="header-actions">
+        <div class="lang-selector" title="Language / भाषा">
+          <button class="lang-btn" data-lang="en" title="English">🇬🇧 EN</button>
+          <button class="lang-btn" data-lang="hi" title="Hindi">🇮🇳 हिं</button>
+        </div>
+        <button id="navResetBtn" class="btn-reset hidden" title="New Reading">⚡ New</button>
+      </div>
     </header>
 
-    <!-- Main Container -->
+    <!-- ============ MAIN NAVIGATION (shown after first profile) ============ -->
+    <nav id="mainNav" class="main-nav glass-card hidden">
+      <div class="section-switch-bar wide-bar">
+        <button class="tab-pill active" data-section="sectionDashboard">🏠 Home</button>
+        <button class="tab-pill" data-section="sectionCosmic">🌌 Cosmic Profile</button>
+        <button class="tab-pill" data-section="sectionWestern">☀ Western</button>
+        <button class="tab-pill" data-section="sectionVedic">🕉️ Vedic</button>
+        <button class="tab-pill" data-section="sectionInfluences">🧭 Influences</button>
+        <button class="tab-pill" data-section="sectionPeriods">⏳ Major Periods</button>
+        <button class="tab-pill" data-section="sectionPeakPeriods">⭐ Peak Periods</button>
+        <button class="tab-pill" data-section="sectionChallengePeriods">⚠ Challenge Periods</button>
+        <button class="tab-pill" data-section="sectionMarriageCompat">❤️ Marriage Compat</button>
+        <button class="tab-pill" data-section="sectionKundaliMilan">💍 Kundali Milan</button>
+        <button class="tab-pill" data-section="sectionNumerology">🔢 Numerology</button>
+        <button class="tab-pill" data-section="sectionMonsterTattoo">👹 Monster & Tattoo</button>
+      </div>
+    </nav>
+
     <main class="main-content">
 
-      <!-- ================= 1. ONBOARDING & BIRTH DETAILS FORM (NO LOGIN / SIGNUP) ================= -->
+      <!-- ============ 1. ONBOARDING & BIRTH DETAILS FORM ============ -->
       <section id="onboardingSection" class="onboarding-section">
         <div class="hero-intro glass-card">
-          
-          <!-- Hero Logo Banner -->
           <div class="hero-logo-container">
-            <img src="assets/destiny_nexus_logo.jpg" alt="Destiny Nexus" class="hero-center-logo" />
+            <div class="hero-logo-wrap"><img src="assets/destiny_nexus_logo.jpg" alt="PROPHECY" class="hero-center-logo" /><span class="logo-name-overlay">PROPHECY</span></div>
           </div>
-
-          <div class="hero-badge">✨ Mystic Insights, Infinite Possibilities ✨</div>
-          <h2 class="hero-headline">DESTINY NEXUS</h2>
-          <p class="hero-tagline">HOROSCOPE • NUMEROLOGY • FUTURE TELLING</p>
-          <p class="hero-subtext">Enter your birth coordinates below to instantly pinpoint where your destiny lies, calculate your Vedic Kundali, uncover your Month Monster and Sacred Birth Tattoo, and read your complete Life History.</p>
+          <div class="hero-badge">✨ Professional Deterministic Ephemeris Engine ✨</div>
+          <h2 class="hero-headline">PROPHECY</h2>
+          <p class="hero-tagline">PREMIUM ASTROLOGY • VEDIC JYOTISH • NUMEROLOGY</p>
+          <p class="hero-subtext">A commercially-ready astrology platform using real astronomical ephemeris calculations — Western Tropical zodiac, Vedic Sidereal (Lahiri Ayanamsa), accurate Nakshatra/Pada from actual Moon position, Vimshottari Dasha life periods, traditional Kundali Milan 8-Koota, and full Pythagorean numerology. No fabricated values.</p>
 
           <form id="astrologyForm" class="astrology-form">
             <div class="form-grid">
-              
               <div class="form-group">
                 <label for="userName">Full Name</label>
                 <div class="input-wrapper">
@@ -69,62 +88,62 @@
                   <input type="text" id="userName" placeholder="e.g. Aryan Sharma" required />
                 </div>
               </div>
-
               <div class="form-group">
                 <label for="userDob">Date of Birth</label>
                 <div class="input-wrapper">
                   <span class="input-icon">📅</span>
-                  <input type="date" id="userDob" required />
+                  <input type="date" id="userDob" inputmode="numeric" autocomplete="bday" aria-describedby="userDobError" required />
                 </div>
-                <span class="field-hint">Calculates your Zodiac, Month Monster & Birth Date Tattoo</span>
+                <span class="field-hint">Required for all zodiac, numerology and planetary positions</span>
+                <span id="userDobError" class="field-error hidden" role="alert"></span>
               </div>
-
               <div class="form-group">
-                <label for="userTob">Time of Birth</label>
+                <label for="userTob">Time of Birth <span style="opacity:.6">(optional)</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon">⏰</span>
-                  <input type="time" id="userTob" value="12:00" required />
+                  <input type="time" id="userTob" />
                 </div>
-                <span class="field-hint">Pinpoints your Ascendant (Lagna) & 10th House Zenith</span>
+                <span class="field-hint">If unknown, Ascendant/Lagna and house placements are approximated</span>
               </div>
-
               <div class="form-group">
                 <label for="userPob">Place of Birth</label>
                 <div class="input-wrapper">
                   <span class="input-icon">📍</span>
                   <input type="text" id="userPob" placeholder="e.g. Mumbai, India / London, UK" required />
                 </div>
-                <span class="field-hint">Used for Astro-Cartography & Destiny Coordinates</span>
+                <span class="field-hint">Resolves coordinates, timezone and historical DST automatically</span>
+                <span id="userPobError" class="field-error hidden" role="alert"></span>
               </div>
-
             </div>
-
             <button type="submit" id="calculateSubmitBtn" class="btn btn-hero btn-block">
-              <span>🔮 Reveal My Destiny Coordinates & Kundali</span>
+              <span>🔮 Calculate My Complete Cosmic Profile</span>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
+            <p class="disclaimer-mini">Astrological readings are interpretive guidance, not guaranteed scientific facts. Individual free will always shapes the final outcome.</p>
           </form>
         </div>
       </section>
 
-      <!-- ================= 2. RESULTS CONTAINER ================= -->
+      <!-- ============ 2. RESULTS CONTAINER ============ -->
       <section id="resultsContainer" class="results-container hidden">
 
-        <!-- Subject Overview Card -->
+        <!-- Subject Overview / Dashboard Header -->
         <div class="subject-hero-card glass-card">
           <div class="subject-row">
             <div class="avatar-box">
-              <span class="avatar-letter" id="userInitial">A</span>
-              <span class="zodiac-corner-badge" id="userZodiacSymbol">♈</span>
+              <span class="avatar-letter" id="dashInitial">A</span>
+              <span class="zodiac-corner-badge" id="dashSymbol">♈</span>
             </div>
             <div class="subject-info">
               <div class="tags-container">
-                <span class="cosmic-tag tag-gold" id="userLagnaTag">Lagna: Aries</span>
-                <span class="cosmic-tag tag-magenta" id="userRashiTag">Rashi: Leo</span>
-                <span class="cosmic-tag tag-cyan" id="userNakshatraTag">Nakshatra: Ashwini</span>
               </div>
-              <h2 class="subject-name" id="displayUserName">Aryan Sharma</h2>
-              <p class="subject-meta" id="displayBirthMeta">Born August 15, 2002 • 10:30 AM • Mumbai, India</p>
+              <h2 class="subject-name" id="welcomeName">Welcome!</h2>
+              <p class="subject-meta" id="dashMeta">Born —</p>
+              <div class="tags-container" style="margin-top:6px;">
+                <span class="cosmic-tag tag-gold" id="dashRashiTag">Rashi: —</span>
+                <span class="cosmic-tag tag-magenta" id="dashNakTag">Nakshatra: —</span>
+                <span class="cosmic-tag tag-cyan" id="dashLagnaTag">Lagna: —</span>
+              </div>
             </div>
           </div>
 
@@ -132,154 +151,221 @@
           <div class="quick-stats-bar">
             <div class="qs-item">
               <span class="qs-label">Solar Orbits</span>
-              <span class="qs-value highlight" id="qsAge">24 Years</span>
+              <span class="qs-value highlight" id="qsAge">—</span>
             </div>
             <div class="qs-divider"></div>
             <div class="qs-item">
               <span class="qs-label">Days on Earth</span>
-              <span class="qs-value" id="qsDays">8,766</span>
+              <span class="qs-value" id="qsDays">—</span>
             </div>
             <div class="qs-divider"></div>
             <div class="qs-item">
               <span class="qs-label">Heartbeats Taken</span>
-              <span class="qs-value" id="qsHeartbeats">946,728,000</span>
+              <span class="qs-value" id="qsHeartbeats">—</span>
             </div>
             <div class="qs-divider"></div>
             <div class="qs-item">
               <span class="qs-label">Next Birthday</span>
-              <span class="qs-value highlight-cyan" id="qsNextBday">In 120 Days</span>
+              <span class="qs-value highlight-cyan" id="qsNextBday">—</span>
             </div>
           </div>
         </div>
 
-        <!-- Sticky Tab Navigation for Mobile & Desktop -->
-        <div class="section-switch-bar">
-          <button class="tab-pill active" data-target="sectionDestinyLoc">🧭 Where is My Destiny?</button>
-          <button class="tab-pill" data-target="sectionKundli">🕉️ Visit Kundali</button>
-          <button class="tab-pill" data-target="sectionMonsterTattoo">👹 Monster & Tattoo</button>
-          <button class="tab-pill" data-target="sectionLifeHistory">📜 Life History</button>
-          <button class="tab-pill" data-target="sectionFutureOracle">🔮 Future Oracle</button>
-        </div>
-
-        <!-- ================= SECTION 0: WHERE IS YOUR DESTINY? ================= -->
-        <div id="sectionDestinyLoc" class="content-panel">
-          
+        <!-- ==================== SECTION: DASHBOARD ==================== -->
+        <div id="sectionDashboard" class="content-panel" data-role="page-section">
           <div class="panel-header glass-card">
-            <div class="header-icon-circle icon-gold">🧭</div>
+            <div class="header-icon-circle icon-gold">🏠</div>
             <div>
-              <span class="panel-kicker">Destiny Nexus Astro-Cartography</span>
-              <h3 class="panel-title">Where is Your Destiny? (Location, Material & Apex Calling)</h3>
-              <p class="panel-desc">Calculated precisely by fusing your Name vibrations, Date of Birth, Time of Birth (<span id="destinyTob">10:30 AM</span>), and Birthplace Coordinates (<span id="destinyPob">Mumbai</span>).</p>
+              <span class="panel-kicker">Personalized Cosmic Dashboard</span>
+              <h3 class="panel-title">Your Cosmic Dashboard</h3>
+              <p class="panel-desc">At-a-glance summary of your Western, Vedic and Numerology profile.</p>
             </div>
           </div>
 
-          <div class="destiny-loc-grid">
-            
-            <!-- Destiny Card 1: Geographic Coordinates & Power Direction -->
-            <div class="destiny-feature-card glass-card">
-              <div class="df-header">
-                <span class="df-icon">📍</span>
-                <div>
-                  <span class="df-kicker">Geographic Power Center</span>
-                  <h4>Destined Power Direction & Geography</h4>
-                </div>
+          <!-- Cosmic Summary Cards -->
+          <div class="dashboard-grid-2col" style="margin-bottom:20px;">
+            <div class="glass-card cosmic-summary-card">
+              <h4 class="card-subtitle">🌌 Your Cosmic Profile</h4>
+              <div class="cosmic-split">
+                <div class="cosmic-col">
+                <div class="cosmic-row-label" style="font-weight:700;color:var(--color-cyan);margin-bottom:6px;">Western</div>
+                <div class="cosmic-row"><span>☀ Sun</span><strong id="dashSunSign">—</strong></div>
+                <div class="cosmic-row"><span>🌙 Moon</span><strong id="dashMoonSign">—</strong></div>
+                <div class="cosmic-row"><span>⬆ Rising</span><strong id="dashRising">—</strong></div>
               </div>
-              <div class="df-body">
-                <div class="df-highlight-box">
-                  <div class="df-prop-row">
-                    <span class="df-label">Magnetic Power Direction:</span>
-                    <span class="df-value highlight-gold" id="destinyDirection">North-East (Ishanya Zenith)</span>
-                  </div>
-                  <div class="df-prop-row">
-                    <span class="df-label">Geographic Landscape:</span>
-                    <span class="df-value" id="destinyLandscape">High-Elevation Urban Metropolises & Coastal Innovation Hubs</span>
-                  </div>
-                  <div class="df-prop-row">
-                    <span class="df-label">Foreign vs Homeland Horizon:</span>
-                    <span class="df-value highlight-cyan" id="destinySojourn">Global / Distant Land Sovereign Manifestation (High Foreign Travel)</span>
-                  </div>
-                </div>
-                <p class="df-explanation" id="destinyGeoDesc">Your planetary 9th (Fortune) and 10th (Career Karma) houses indicate peak luck activates when you travel or expand your enterprise North/North-East of your birthplace.</p>
+              <div class="cosmic-col">
+                <div class="cosmic-row-label" style="font-weight:700;color:var(--color-gold);margin-bottom:6px;">Vedic / Jyotish</div>
+                <div class="cosmic-row"><span>🌙 Rashi</span><strong id="dashRashi">—</strong></div>
+                <div class="cosmic-row"><span>⭐ Nakshatra</span><strong id="dashNakshatra">—</strong></div>
+                <div class="cosmic-row"><span>⬆ Lagna</span><strong id="dashLagna">—</strong></div>
+              </div>
               </div>
             </div>
-
-            <!-- Destiny Card 2: Material Calling & Wealth Vehicle -->
-            <div class="destiny-feature-card glass-card">
-              <div class="df-header">
-                <span class="df-icon">💎</span>
-                <div>
-                  <span class="df-kicker">Material Vehicle of Wealth</span>
-                  <h4>Destined Material Calling & Asset Realm</h4>
-                </div>
-              </div>
-              <div class="df-body">
-                <div class="df-highlight-box">
-                  <div class="df-prop-row">
-                    <span class="df-label">Primary Wealth Medium:</span>
-                    <span class="df-value highlight-gold" id="destinyMaterialMedium">Digital IP, AI Systems & Scalable Strategic Infrastructure</span>
-                  </div>
-                  <div class="df-prop-row">
-                    <span class="df-label">Auspicious Power Metal:</span>
-                    <span class="df-value" id="destinyPowerMetal">24K Gold & Pure Titanium</span>
-                  </div>
-                  <div class="df-prop-row">
-                    <span class="df-label">Sacred Elemental Force:</span>
-                    <span class="df-value highlight-cyan" id="destinyElementalForce">Solar Fire & Electric Ether (Agni-Akasha)</span>
-                  </div>
-                </div>
-                <p class="df-explanation" id="destinyMaterialDesc">Your material abundance flows when you build scalable systems, bridge technology with commercial authority, and hold tangible appreciating assets.</p>
+            <div class="glass-card cosmic-summary-card">
+              <h4 class="card-subtitle">🔢 Numerology & Life Phases</h4>
+              <div class="cosmic-col" style="gap:10px;">
+                <div class="cosmic-row"><span>🧭 Life Path</span><strong id="dashLifePath">—</strong></div>
+                <div class="cosmic-row"><span>⏳ Mahadasha</span><strong id="dashMahadasha">—</strong></div>
+                <div class="cosmic-row"><span>🌊 Current Phase</span><strong id="dashPhase">—</strong></div>
+                <div class="cosmic-row"><span>⭐ Peak Period</span><strong id="dashPeak">—</strong></div>
+                <div class="cosmic-row"><span>⚠ Challenge Period</span><strong id="dashChallenge">—</strong></div>
               </div>
             </div>
-
-            <!-- Destiny Card 3: Destiny Apex Window & Milestone -->
-            <div class="destiny-feature-card glass-card">
-              <div class="df-header">
-                <span class="df-icon">⏳</span>
-                <div>
-                  <span class="df-kicker">Temporal Apex & Karmic Harvest</span>
-                  <h4>Destiny Peak Age Window & Legacy</h4>
-                </div>
-              </div>
-              <div class="df-body">
-                <div class="df-highlight-box">
-                  <div class="df-prop-row">
-                    <span class="df-label">Peak Destiny Age Window:</span>
-                    <span class="df-value highlight-gold" id="destinyPeakAge">Ages 28 - 36 (Solar Ascendance Epoch)</span>
-                  </div>
-                  <div class="df-prop-row">
-                    <span class="df-label">Karmic Soul Mandate:</span>
-                    <span class="df-value" id="destinySoulMandate">The Master Sovereign: Transform chaos into enduring order and empower thousands.</span>
-                  </div>
-                </div>
-                <p class="df-explanation" id="destinyApexDesc">During your peak epoch, past compounding efforts suddenly synthesize into major public recognition, financial sovereignty, and lasting leadership.</p>
-              </div>
-            </div>
-
           </div>
 
+          <div class="dashboard-grid-3col">
+            <button class="glass-card insight-card" data-section="sectionInfluences">
+              <div class="insight-icon icon-cyan">🧭</div>
+              <h4>Mind & Emotions</h4>
+              <p>Psychological blueprint, stress response and intuitive channels.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionPeriods">
+              <div class="insight-icon icon-gold">⏳</div>
+              <h4>Life Periods</h4>
+              <p>Past, present and future major Dasha timeline.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionPeakPeriods">
+              <div class="insight-icon icon-gold">⭐</div>
+              <h4>Peak Periods</h4>
+              <p>Strongest historical, current and future strong windows.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionChallengePeriods">
+              <div class="insight-icon icon-magenta">⚠</div>
+              <h4>Challenge Periods</h4>
+              <p>Periods requiring caution and preparation.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionMarriageCompat">
+              <div class="insight-icon icon-magenta">❤️</div>
+              <h4>Marriage Compatibility</h4>
+              <p>Two-profile 8-dimension relationship analysis.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionNumerology">
+              <div class="insight-icon icon-cyan">🔢</div>
+              <h4>Numerology</h4>
+              <p>Life Path, Destiny, Soul Urge and more.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionKundaliMilan">
+              <div class="insight-icon icon-gold">💍</div>
+              <h4>Kundali Milan</h4>
+              <p>Traditional 8-Koota compatibility /36 score.</p>
+            </button>
+            <button class="glass-card insight-card" data-section="sectionReports">
+              <div class="insight-icon icon-cyan">📄</div>
+              <h4>Full Reports</h4>
+              <p>Premium-ready FREE / PREMIUM structured reading tiles.</p>
+            </button>
+          </div>
         </div>
 
-        <!-- ================= SECTION A: VISIT KUNDALI ================= -->
-        <div id="sectionKundli" class="content-panel hidden">
-          
+        <!-- ==================== SECTION: COSMIC PROFILE ==================== -->
+        <div id="sectionCosmic" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-gold">🌌</div>
+            <div>
+              <span class="panel-kicker">Your Cosmic Identity</span>
+              <h3 class="panel-title">Cosmic Identity — Western & Vedic</h3>
+              <p class="panel-desc">Core astronomical identity from deterministic ephemeris. No fabricated fallback values.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-2col">
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-cyan);">🌞 Western Astrology (Tropical Zodiac)</h4>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                <div class="cosmic-row"><span>☀ Sun Sign</span><strong id="cpWSun">—</strong></div>
+                <div class="cosmic-row"><span>🌙 Moon Sign</span><strong id="cpWMoon">—</strong></div>
+                <div class="cosmic-row"><span>⬆ Ascendant / Rising</span><strong id="cpWAsc">—</strong></div>
+              </div>
+            </div>
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-gold);">🕉️ Vedic Astrology (Sidereal Zodiac — Lahiri Ayanamsa)</h4>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                <div class="cosmic-row"><span>🌙 Janma Rashi</span><strong id="cpVRashi">—</strong></div>
+                <div class="cosmic-row"><span>⭐ Nakshatra</span><strong id="cpVNak">—</strong></div>
+                <div class="cosmic-row"><span>🔹 Nakshatra Pada</span><strong id="cpVPada">—</strong></div>
+                <div class="cosmic-row"><span>⬆ Lagna</span><strong id="cpVLagna">—</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-top:18px;">
+            <h4 class="card-subtitle">System Explanation</h4>
+            <p id="cpSystemExplain" style="color:var(--text-secondary);line-height:1.7;"></p>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: WESTERN ASTROLOGY ==================== -->
+        <div id="sectionWestern" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-cyan">☀</div>
+            <div>
+              <span class="panel-kicker">Western Astrology · Tropical Zodiac</span>
+              <h3 class="panel-title">Western Astrology — Planetary Placements</h3>
+              <p class="panel-desc">Sun, Moon, Ascendant, 8 planets, houses and aspects.</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <h4 class="card-subtitle">Planetary Placements</h4>
+            <div class="table-responsive">
+              <table class="kundli-table">
+                <thead>
+                  <tr>
+                    <th>Planet</th>
+                    <th>Sign & Degree · House</th>
+                    <th>Sign Strengths</th>
+                    <th>Archetype</th>
+                  </tr>
+                </thead>
+                <tbody id="westernTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-2col" style="margin-bottom:18px;">
+            <div class="glass-card"><div id="westernPersonality" style="color:var(--text-secondary);line-height:1.7;"></div></div>
+            <div class="glass-card"><div id="westernMind" style="color:var(--text-secondary);line-height:1.7;"></div></div>
+            <div class="glass-card"><div id="westernEmotions" style="color:var(--text-secondary);line-height:1.7;"></div></div>
+            <div class="glass-card"><div id="westernRelationships" style="color:var(--text-secondary);line-height:1.7;"></div></div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <div id="westernCareer" style="color:var(--text-secondary);line-height:1.7;"></div>
+          </div>
+
+          <div class="dashboard-grid-3col" style="margin-bottom:18px;">
+            <div class="glass-card">
+              <h4 class="card-subtitle">Core Strengths</h4>
+              <div id="westernStrengths" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+            </div>
+            <div class="glass-card">
+              <h4 class="card-subtitle">Growth Areas</h4>
+              <div id="westernChallenges" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+            </div>
+            <div class="glass-card">
+              <h4 class="card-subtitle">Life Themes</h4>
+              <div id="westernThemes" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: VEDIC ASTROLOGY ==================== -->
+        <div id="sectionVedic" class="content-panel hidden" data-role="page-section">
           <div class="panel-header glass-card">
             <div class="header-icon-circle icon-gold">🕉️</div>
             <div>
-              <span class="panel-kicker">Vedic Astrology & Janam Kundli</span>
-              <h3 class="panel-title">Your Lagna Kundali (Birth Chart & 12 Bhavas)</h3>
-              <p class="panel-desc">Calculated precisely using your Date, Time (<span id="kundliTimeVal">10:30 AM</span>) and Place of Birth (<span id="kundliPlaceVal">Mumbai</span>).</p>
+              <span class="panel-kicker">Vedic Astrology / Jyotish · Sidereal Lahiri</span>
+              <h3 class="panel-title">Vedic Astrology — Lagna Kundli & Dashas</h3>
+              <p class="panel-desc">Rashi, Nakshatra, Lagna, 9 planets (Grahas) including Rahu/Ketu, and Vimshottari Dasha timeline.</p>
             </div>
           </div>
 
-          <div class="kundli-main-layout">
-            <!-- Diamond Chart Visual -->
+          <div class="kundli-main-layout" style="margin-bottom:18px;">
             <div class="kundli-chart-wrapper glass-card">
               <div class="chart-title-bar">
-                <span>Lagna Kundli (D1 Chart)</span>
-                <span class="badge-accent" id="chartAscendantText">Ascendant: Aries (Mesha)</span>
+                <span>Lagna Kundli (D1 Chart · Sidereal)</span>
+                <span class="badge-accent" id="chartAscendantText">Lagna: —</span>
               </div>
-              
-              <!-- SVG Diamond Vedic Kundli Chart -->
               <div class="svg-chart-container">
                 <svg viewBox="0 0 400 400" class="kundli-svg" id="kundliSvgChart">
                   <defs>
@@ -288,16 +374,13 @@
                       <stop offset="100%" stop-color="#4cc9f0" stop-opacity="0.8" />
                     </linearGradient>
                   </defs>
-
                   <rect x="10" y="10" width="380" height="380" fill="rgba(10, 14, 28, 0.75)" stroke="url(#chartLineGrad)" stroke-width="2.5" rx="12" />
                   <line x1="10" y1="10" x2="390" y2="390" stroke="url(#chartLineGrad)" stroke-width="1.8" />
                   <line x1="390" y1="10" x2="10" y2="390" stroke="url(#chartLineGrad)" stroke-width="1.8" />
                   <polygon points="200,10 390,200 200,390 10,200" fill="rgba(255, 209, 102, 0.03)" stroke="url(#chartLineGrad)" stroke-width="2" />
-
                   <g id="kundliHousesGroup"></g>
                 </svg>
               </div>
-
               <div class="chart-legend">
                 <span><strong>Su:</strong> Sun (Surya)</span>
                 <span><strong>Mo:</strong> Moon (Chandra)</span>
@@ -311,80 +394,456 @@
               </div>
             </div>
 
-            <!-- Planetary Positions & Kundali Insights Table -->
             <div class="kundli-details-wrapper">
-              
-              <!-- Key Kundli Panchang & Metrics -->
               <div class="glass-card kundli-metrics-card">
-                <h4 class="card-subtitle">Key Vedic Astrological Alignments</h4>
-                <div class="kundli-grid-chips">
-                  <div class="k-chip">
-                    <span class="k-lbl">Lagna (Ascendant)</span>
-                    <span class="k-val" id="kLagna">Aries (Mesha)</span>
-                  </div>
-                  <div class="k-chip">
-                    <span class="k-lbl">Lagna Lord</span>
-                    <span class="k-val" id="kLagnaLord">Mars (Mangal)</span>
-                  </div>
-                  <div class="k-chip">
-                    <span class="k-lbl">Rashi (Moon Sign)</span>
-                    <span class="k-val" id="kMoonSign">Leo (Simha)</span>
-                  </div>
-                  <div class="k-chip">
-                    <span class="k-lbl">Nakshatra</span>
-                    <span class="k-val" id="kNakshatra">Magha (Pada 2)</span>
-                  </div>
-                  <div class="k-chip">
-                    <span class="k-lbl">Sun Sign (Surya)</span>
-                    <span class="k-val" id="kSunSign">Leo (Simha)</span>
-                  </div>
-                  <div class="k-chip">
-                    <span class="k-lbl">Current Mahadasha</span>
-                    <span class="k-val highlight" id="kMahadasha">Jupiter (Guru) Dasha</span>
-                  </div>
-                </div>
+              <h4 class="card-subtitle">Key Vedic Alignments (Panchang)</h4>
+              <div class="kundli-grid-chips">
+                <div class="k-chip"><span class="k-lbl">Lagna (Ascendant)</span><span class="k-val" id="vLagna">—</span></div>
+                <div class="k-chip"><span class="k-lbl">Lagna Lord</span><span class="k-val" id="vLagnaLord">—</span></div>
+                <div class="k-chip"><span class="k-lbl">Janma Rashi (Moon)</span><span class="k-val" id="vRashi">—</span></div>
+                <div class="k-chip"><span class="k-lbl">Rashi Lord</span><span class="k-val" id="vRashiLord">—</span></div>
+                <div class="k-chip"><span class="k-lbl">Nakshatra & Pada</span><span class="k-val" id="vNakshatra">—</span></div>
+                <div class="k-chip"><span class="k-lbl">Nakshatra Lord · Gana · Animal</span><span class="k-val" id="vNakshatraLord">—</span></div>
+                <div class="k-chip" style="grid-column:1/-1;"><span class="k-lbl">Current Mahadasha (Vimshottari 120-yr cycle)</span><span class="k-val highlight" id="vMahadasha">—</span></div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <!-- House Significances & Planet Placements -->
-              <div class="glass-card kundli-planets-table-card">
-                <h4 class="card-subtitle">Planetary Placements in 12 Houses</h4>
-                <div class="table-responsive">
-                  <table class="kundli-table" id="planetsTable">
-                    <thead>
-                      <tr>
-                        <th>Planet (Graha)</th>
-                        <th>House (Bhava)</th>
-                        <th>Rashi (Zodiac)</th>
-                        <th>Effect / Significance</th>
-                      </tr>
-                    </thead>
-                    <tbody id="planetsTableBody">
-                      <!-- Dynamic rows -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
+          <div class="glass-card" style="margin-bottom:18px;">
+            <h4 class="card-subtitle">Vedic Planetary Positions (Grahas in Bhavas)</h4>
+            <div class="table-responsive">
+              <table class="kundli-table">
+                <thead>
+                  <tr>
+                    <th>Graha (Planet)</th>
+                    <th>Rashi · Degree · Bhava</th>
+                    <th>Rashi Lord</th>
+                    <th>Karaka (Significance)</th>
+                  </tr>
+                </thead>
+                <tbody id="vedicTableBody"></tbody>
+              </table>
             </div>
           </div>
 
+          <div class="dashboard-grid-2col" style="margin-bottom:18px;">
+            <div class="glass-card"><div id="vNakInterp" style="color:var(--text-secondary);line-height:1.7;"></div></div>
+            <div class="glass-card"><div id="vLagnaInterp" style="color:var(--text-secondary);line-height:1.7;"></div></div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <h4 class="card-subtitle">Vedic Summary</h4>
+            <p id="vSummary" style="color:var(--text-secondary);line-height:1.7;"></p>
+          </div>
+
+          <div class="glass-card">
+            <h4 class="card-subtitle">Vimshottari Mahadasha Sequence (9 Planets · 120 Year Cycle)</h4>
+            <div id="dashaList" style="margin-top:12px;display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
         </div>
 
-        <!-- ================= SECTION B: MONTH'S MONSTER & BIRTH DATE TATTOO ================= -->
-        <div id="sectionMonsterTattoo" class="content-panel hidden">
-          
+        <!-- ==================== SECTION: INFLUENCES ==================== -->
+        <div id="sectionInfluences" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-cyan">🧭</div>
+            <div>
+              <span class="panel-kicker">Personalized Psychological & Life Influences</span>
+              <h3 class="panel-title">Influences — Mind · Emotions · Life Predictions</h3>
+              <p class="panel-desc">Interpretation of your calculated chart factors; themes suggest tendencies, not certainties.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-2col">
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-magenta);">A. Mind & Emotions</h4>
+              <div id="infMindEmo" style="color:var(--text-secondary);line-height:1.7;margin-top:10px;"></div>
+            </div>
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-gold);">B. Life Predictions Overview</h4>
+              <div id="infLifePred" style="color:var(--text-secondary);line-height:1.7;margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: MAJOR LIFE PERIODS ==================== -->
+        <div id="sectionPeriods" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-gold">⏳</div>
+            <div>
+              <span class="panel-kicker">Major Life Periods (Vimshottari Mahadasha)</span>
+              <h3 class="panel-title">Major Life Periods — Past · Present · Future</h3>
+              <p class="panel-desc">Vedic Dasha timeline from your birth Nakshatra Pada. Period themes are interpretive guidance.</p>
+            </div>
+          </div>
+
+          <div class="timeline-wrapper glass-card">
+            <div class="timeline-container" id="periodsTimeline"></div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: PEAK PERIODS ==================== -->
+        <div id="sectionPeakPeriods" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-gold">⭐</div>
+            <div>
+              <span class="panel-kicker">Peak / Strongest Periods</span>
+              <h3 class="panel-title">Peak Periods — Historically Strong, Current, Future</h3>
+              <p class="panel-desc">Astrologically significant windows flagged by high Dasha intensity thresholds (≥78%). These are potential opportunity windows — never guarantees.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-3col">
+            <div>
+              <h4 class="card-subtitle" style="margin-bottom:12px;color:var(--color-cyan);">📜 Past Peaks</h4>
+              <div id="pastPeaks" style="display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+            <div>
+              <h4 class="card-subtitle" style="margin-bottom:12px;color:var(--color-gold);">🌊 Current Phase</h4>
+              <div id="currentPhase" style="display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+            <div>
+              <h4 class="card-subtitle" style="margin-bottom:12px;color:var(--color-magenta);">🔮 Future Peaks</h4>
+              <div id="futurePeaks" style="display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: CHALLENGE PERIODS ==================== -->
+        <div id="sectionChallengePeriods" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-magenta">⚠</div>
+            <div>
+              <span class="panel-kicker">Difficult / Challenging Periods</span>
+              <h3 class="panel-title">Challenge Periods — Preparation & Strength-Building Windows</h3>
+              <p class="panel-desc">Flagged by low intensity (≤55%). Nothing catastrophic guaranteed. These are strengthening, not threatening, cycles. Constructive approach builds lasting resilience.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-3col">
+            <div>
+              <h4 class="card-subtitle" style="margin-bottom:12px;color:var(--color-cyan);">📜 Past Challenges</h4>
+              <div id="pastChallenges" style="display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+            <div>
+              <h4 class="card-subtitle" style="margin-bottom:12px;color:var(--color-gold);">🌊 Current Challenge</h4>
+              <div id="currentChallenge" style="display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+            <div>
+              <h4 class="card-subtitle" style="margin-bottom:12px;color:var(--color-magenta);">🔮 Future Challenges</h4>
+              <div id="futureChallenges" style="display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: MARRIAGE COMPATIBILITY ==================== -->
+        <div id="sectionMarriageCompat" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-magenta">❤️</div>
+            <div>
+              <span class="panel-kicker">Marriage Compatibility Analysis</span>
+              <h3 class="panel-title">Marriage Compatibility — Two Birth Profiles</h3>
+              <p class="panel-desc">Compare two complete profiles across 8 relationship dimensions. Scores are defensibly calculated from chart data.</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <form id="compatForm" class="astrology-form">
+              <div class="compat-2col-form">
+                <div>
+              <h4 class="card-subtitle" style="color:var(--color-cyan);">🤵 Groom / वर</h4>
+              <div class="form-grid">
+                <div class="form-group" style="grid-column:1/-1;">
+                  <label>Full Name</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="cp1Name" placeholder="Groom Name" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Date of Birth</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">📅</span>
+                    <input type="date" id="cp1Dob" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Time of Birth</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">⏰</span>
+                    <input type="time" id="cp1Tob" />
+                  </div>
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                  <label>Place of Birth</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">📍</span>
+                    <input type="text" id="cp1Pob" placeholder="City, Country" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 class="card-subtitle" style="color:var(--color-gold);">👰 Bride / वधू</h4>
+              <div class="form-grid">
+                <div class="form-group" style="grid-column:1/-1;">
+                  <label>Full Name</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="cp2Name" placeholder="Bride Name" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Date of Birth</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">📅</span>
+                    <input type="date" id="cp2Dob" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Time of Birth</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">⏰</span>
+                    <input type="time" id="cp2Tob" />
+                  </div>
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                  <label>Place of Birth</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">📍</span>
+                    <input type="text" id="cp2Pob" placeholder="City, Country" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+              <button type="submit" class="btn btn-hero btn-block">🔍 Calculate Marriage Compatibility</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="sectionCompatResults" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-magenta">❤️</div>
+            <div>
+              <span class="panel-kicker">Compatibility Results</span>
+              <h3 class="panel-title">Marriage Compatibility — 8 Dimensions</h3>
+              <p class="panel-desc">Calculated from both birth profiles. Percentages are defensibly derived — no random numbers.</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+              <div>
+                <div class="num-value" style="font-size:3.2rem;" id="compatOverall">—%</div>
+                <div style="color:var(--text-secondary);">Overall Compatibility</div>
+              </div>
+              <div class="pill pill-gold" style="font-size:1.1rem;padding:10px 18px;" id="compatVerdict">—</div>
+            </div>
+            <div id="compatBars" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: KUNDALI MILAN ==================== -->
+        <div id="sectionKundaliMilan" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-gold">💍</div>
+            <div>
+              <span class="panel-kicker">Kundali Milan · Traditional 8 Koota /36</span>
+              <h3 class="panel-title">Kundali Milan — Groom + Bride 8-Koota Compatibility</h3>
+              <p class="panel-desc">Traditional Vedic system: Varna · Vashya · Tara · Yoni · Graha Maitri · Gana · Bhakoot · Nadi. Out of 36 total.</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <form id="kundaliForm" class="astrology-form">
+              <div class="compat-2col-form">
+                <div>
+                  <h4 class="card-subtitle" style="color:var(--color-cyan);">🤵 Groom / वर</h4>
+                  <div class="form-grid">
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <label>Full Name</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="groomName" placeholder="Groom Name" />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Date of Birth</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">📅</span>
+                        <input type="date" id="groomDob" />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Time of Birth</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">⏰</span>
+                        <input type="time" id="groomTob" />
+                      </div>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <label>Place of Birth</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">📍</span>
+                        <input type="text" id="groomPob" placeholder="City, Country" />
+                      </div>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <label for="groomKundali">Optional Kundali (JPG, PNG, PDF)</label>
+                      <input type="file" id="groomKundali" accept="image/jpeg,image/png,application/pdf" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="card-subtitle" style="color:var(--color-magenta);">👰 Bride / वधू</h4>
+                  <div class="form-grid">
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <label>Full Name</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="brideName" placeholder="Bride Name" />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Date of Birth</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">📅</span>
+                        <input type="date" id="brideDob" />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Time of Birth</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">⏰</span>
+                        <input type="time" id="brideTob" />
+                      </div>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <label>Place of Birth</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon">📍</span>
+                        <input type="text" id="bridePob" placeholder="City, Country" />
+                      </div>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <label for="brideKundali">Optional Kundali (JPG, PNG, PDF)</label>
+                      <input type="file" id="brideKundali" accept="image/jpeg,image/png,application/pdf" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-hero btn-block">💍 Calculate Kundali Milan (8-Koota /36)</button>
+              <p class="disclaimer-mini">This 8-Koota score is a traditional summary. No astrological score guarantees marriage success. Individual free will, maturity and communication always dominate.</p>
+            </form>
+          </div>
+        </div>
+
+        <div id="sectionKundaliResults" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-gold">💍</div>
+            <div>
+              <span class="panel-kicker">Kundali Milan Results</span>
+              <h3 class="panel-title">Kundali Milan — 8 Koota Report</h3>
+              <p class="panel-desc">Varna · Vashya · Tara · Yoni · Graha Maitri · Gana · Bhakoot · Nadi.</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <h4 class="card-subtitle">Basic Information / मूल जानकारी</h4>
+            <div class="table-responsive">
+              <table class="kundli-table">
+                <thead>
+                  <tr>
+                    <th>पक्ष</th>
+                    <th>नाम / Name</th>
+                    <th>जन्म तिथि / DOB</th>
+                    <th>जन्म समय / TOB</th>
+                    <th>स्थान / Place</th>
+                    <th>राशि / Rashi</th>
+                    <th>नक्षत्र / Nakshatra</th>
+                    <th>लग्न / Lagna</th>
+                  </tr>
+                </thead>
+                <tbody id="kmInfoTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div class="num-value" style="font-size:2.6rem;" id="kmTotal">— / 36</div>
+                <div style="color:var(--text-secondary);">Total / कुल स्कोर</div>
+              </div>
+              <div class="pill pill-gold" style="font-size:1.05rem;padding:10px 18px;" id="kmVerdict">—</div>
+            </div>
+            <h4 class="card-subtitle">8 Koota Breakdown (कूट विश्लेषण)</h4>
+            <div class="table-responsive" style="margin-top:10px;">
+              <table class="kundli-table">
+                <thead>
+                  <tr>
+                    <th>Koota (कूट)</th>
+                    <th>Points</th>
+                    <th>Progress</th>
+                    <th>%</th>
+                  </tr>
+                </thead>
+                <tbody id="kundaliMilanTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-3col" style="margin-bottom:18px;">
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-emerald);">✅ Major Strengths</h4>
+              <ul id="kmStrengths" style="color:var(--text-secondary);line-height:1.8;padding-left:18px;margin-top:10px;"></ul>
+            </div>
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-magenta);">⚠ Areas for Attention</h4>
+              <ul id="kmChallenges" style="color:var(--text-secondary);line-height:1.8;padding-left:18px;margin-top:10px;"></ul>
+            </div>
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-gold);">💡 Guidance & Considerations</h4>
+              <div id="kmGuidance" style="color:var(--text-secondary);line-height:1.7;margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SECTION: NUMEROLOGY ==================== -->
+        <div id="sectionNumerology" class="content-panel hidden" data-role="page-section">
+          <div class="panel-header glass-card">
+            <div class="header-icon-circle icon-cyan">🔢</div>
+            <div>
+              <span class="panel-kicker">Pythagorean Numerology</span>
+              <h3 class="panel-title">Numerology — 6 Core Numbers</h3>
+              <p class="panel-desc">Classic Pythagorean system (A=1, master numbers 11/22/33 preserved). All calculations shown in methodology below.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid-3col" style="margin-bottom:18px;">
+            <div id="numLifePath"></div>
+            <div id="numDestiny"></div>
+            <div id="numSoulUrge"></div>
+            <div id="numPersonality"></div>
+            <div id="numBirthday"></div>
+            <div id="numPersonalYear"></div>
+          </div>
+          <div id="numCalcMethod"></div>
+        </div>
+
+        <!-- ==================== SECTION: MONSTER & TATTOO ==================== -->
+        <div id="sectionMonsterTattoo" class="content-panel hidden" data-role="page-section">
           <div class="panel-header glass-card">
             <div class="header-icon-circle icon-magenta">👹</div>
             <div>
               <span class="panel-kicker">Gothic Totem & Sacred Ink</span>
               <h3 class="panel-title">Your Month's Monster & Birth Date Tattoo</h3>
-              <p class="panel-desc">Showing exclusively your individual month's shadow guardian and your exact date of birth sacred tattoo.</p>
+              <p class="panel-desc">Preserved feature: exclusive month's shadow guardian and exact birth date sacred tattoo.</p>
             </div>
           </div>
 
           <div class="monster-tattoo-dual-grid">
-            
-            <!-- Card 1: User's Month Monster -->
             <div class="monster-feature-card glass-card">
               <div class="feature-tag-top">Month Shadow Guardian</div>
               <div class="media-frame monster-frame">
@@ -395,21 +854,20 @@
                 <div class="frame-corner corner-br"></div>
               </div>
               <div class="feature-details">
-                <span class="feature-month-badge" id="monsterMonthBadge">August Guardian</span>
-                <h3 class="feature-name" id="monsterName">Eclipse Beast</h3>
-                <blockquote class="feature-quote" id="monsterQuote">"It comes when the sky forgets the sun."</blockquote>
+                <span class="feature-month-badge" id="monsterMonthBadge">—</span>
+                <h3 class="feature-name" id="monsterName">—</h3>
+                <blockquote class="feature-quote" id="monsterQuote">"—"</blockquote>
                 <div class="feature-lore">
                   <h4>Shadow Lore & Archetype</h4>
-                  <p id="monsterLore">Born from celestial darkness, this creature guards the doorway of personal transformation, devouring fear and empowering you with indomitable will.</p>
+                  <p id="monsterLore">—</p>
                 </div>
                 <div class="feature-stats-pill">
-                  <span><strong>Affinity:</strong> <span id="monsterAffinity">Fire & Solar Darkness</span></span>
-                  <span><strong>Power:</strong> <span id="monsterPower">Unstoppable Might</span></span>
+                  <span><strong>Affinity:</strong> <span id="monsterAffinity">—</span></span>
+                  <span><strong>Power:</strong> <span id="monsterPower">—</span></span>
                 </div>
               </div>
             </div>
 
-            <!-- Card 2: User's Birth Date Tattoo -->
             <div class="tattoo-feature-card glass-card">
               <div class="feature-tag-top">Sacred Date Inscription</div>
               <div class="media-frame tattoo-frame">
@@ -420,101 +878,72 @@
                 <div class="frame-corner corner-br"></div>
               </div>
               <div class="feature-details">
-                <span class="feature-date-badge" id="tattooDateBadge">Day 15 Sacred Symbol</span>
-                <h3 class="feature-name" id="tattooName">15. Letting Go</h3>
-                <blockquote class="feature-quote" id="tattooMantra">"Release. Reset. Rise."</blockquote>
+                <span class="feature-date-badge" id="tattooDateBadge">—</span>
+                <h3 class="feature-name" id="tattooName">—</h3>
+                <blockquote class="feature-quote" id="tattooMantra">"—"</blockquote>
                 <div class="feature-lore">
                   <h4>Spiritual Meaning & Totem Power</h4>
-                  <p id="tattooMeaning">This sacred geometry marks your innate ability to shed obsolete limitations, transcend grief, and resurrect with soaring clarity like birds rising from ashes.</p>
+                  <p id="tattooMeaning">—</p>
                 </div>
                 <div class="feature-stats-pill">
-                  <span><strong>Mantra:</strong> <span id="tattooAffirmation">I release, I reset, I rise</span></span>
-                  <span><strong>Chakra:</strong> <span id="tattooChakra">Crown & Heart Chakra</span></span>
+                  <span><strong>Mantra:</strong> <span id="tattooAffirmation">—</span></span>
+                  <span><strong>Chakra:</strong> <span id="tattooChakra">—</span></span>
                 </div>
               </div>
             </div>
-
           </div>
-
         </div>
 
-        <!-- ================= SECTION C: LIFE HISTORY & TIMELINE ================= -->
-        <div id="sectionLifeHistory" class="content-panel hidden">
-          
+        <!-- ==================== SECTION: REPORTS ==================== -->
+        <div id="sectionReports" class="content-panel hidden" data-role="page-section">
           <div class="panel-header glass-card">
-            <div class="header-icon-circle icon-cyan">📜</div>
+            <div class="header-icon-circle icon-cyan">📄</div>
             <div>
-              <span class="panel-kicker">Chronicles of Existence</span>
-              <h3 class="panel-title">Your Life History & Evolutionary Timeline</h3>
-              <p class="panel-desc">Calculated according to your planetary dasha cycles, birth time, and major life epoch transitions.</p>
+              <span class="panel-kicker">Reports & Readings</span>
+              <h3 class="panel-title">Reports — FREE & PREMIUM Tiers</h3>
+              <p class="panel-desc">Architecture is payment-ready. Payment integration required for checkout.</p>
             </div>
           </div>
 
-          <div class="timeline-wrapper glass-card">
-            <div class="timeline-container" id="timelineContainer">
-              <!-- Dynamically populated timeline milestones -->
+          <div class="dashboard-grid-2col">
+            <div class="glass-card">
+              <h4 class="card-subtitle" style="color:var(--color-cyan);">🆓 FREE Tier</h4>
+              <ul style="color:var(--text-secondary);line-height:1.9;padding-left:18px;margin-top:10px;">
+                <li>Basic Birth Profile (name, DOB, place)</li>
+                <li>Western: ☀ Sun · 🌙 Moon · ⬆ Rising</li>
+                <li>Vedic: 🌙 Rashi · ⭐ Nakshatra · ⬆ Lagna</li>
+                <li>Basic Numerology (Life Path + Destiny)</li>
+                <li>Short Dashboard Summary & Home view</li>
+                <li>Cosmic Identity page</li>
+                <li>Monster & Tattoo feature</li>
+              </ul>
+            </div>
+            <div class="glass-card" style="border-color:var(--border-gold);">
+              <h4 class="card-subtitle" style="color:var(--color-gold);">⭐ PREMIUM Tier (Future)</h4>
+              <ul style="color:var(--text-secondary);line-height:1.9;padding-left:18px;margin-top:10px;">
+                <li>Full Western birth chart + houses & aspects</li>
+                <li>Full detailed Vedic report</li>
+                <li>Detailed Vimshottari Dasha timeline with interpretations</li>
+                <li>Complete Kundali Milan 8-Koota report</li>
+                <li>Marriage Compatibility 8-dimension deep-dive</li>
+                <li>Peak periods + Challenge periods detailed</li>
+                <li>Major life periods with career/money/rel/growth scores</li>
+                <li>Hindi reports (भाषा रिपोर्ट)</li>
+                <li>Downloadable PDF reports</li>
+              </ul>
             </div>
           </div>
-
-        </div>
-
-        <!-- ================= SECTION D: FUTURE & DESTINY ORACLE ================= -->
-        <div id="sectionFutureOracle" class="content-panel hidden">
-          
-          <div class="panel-header glass-card">
-            <div class="header-icon-circle icon-gold">🔮</div>
-            <div>
-              <span class="panel-kicker">Destiny Horizon</span>
-              <h3 class="panel-title">Cosmic Future, Career, Wealth & Soul Oracle</h3>
-              <p class="panel-desc">Planetary transits, Numerology Life Path and Tarot archetype forecasting.</p>
-            </div>
-          </div>
-
-          <div class="future-grid">
-            
-            <div class="future-card glass-card">
-              <div class="fc-header">
-                <span class="fc-icon">🚀</span>
-                <h4>Career & Empire Building</h4>
-              </div>
-              <p id="oracleCareer">A high-velocity leadership opening will unlock. Your strategic acumen will give you monumental autonomy over major creative or commercial enterprises.</p>
-            </div>
-
-            <div class="future-card glass-card">
-              <div class="fc-header">
-                <span class="fc-icon">💎</span>
-                <h4>Wealth & Material Flow</h4>
-              </div>
-              <p id="oracleWealth">Your planetary 2nd and 11th houses indicate expanding asset compounding. Diversification into tech, high-value intellectual assets, and land brings exponential returns.</p>
-            </div>
-
-            <div class="future-card glass-card">
-              <div class="fc-header">
-                <span class="fc-icon">❤️</span>
-                <h4>Love, Relationships & Synergy</h4>
-              </div>
-              <p id="oracleLove">Deep soulful synergy is aligning. You attract individuals who mirror your ambition and stimulate your higher creative purpose.</p>
-            </div>
-
-            <div class="future-card glass-card warning-card">
-              <div class="fc-header">
-                <span class="fc-icon">⚠️</span>
-                <h4>Cosmic Safeguard & Hidden Trap</h4>
-              </div>
-              <p id="oracleWarning">Do not let temporary stagnation breed impatience. Trust the quiet compounding of your efforts; your breakthrough is ripening.</p>
-            </div>
-
-          </div>
-
         </div>
 
       </section>
-
     </main>
 
-    <!-- Footer -->
+    <!-- ============ FOOTER ============ -->
     <footer class="app-footer">
-      <p>Powered by <strong>Destiny Nexus</strong> • Mystic Insights, Infinite Possibilities.</p>
+      <div class="disclaimer-footer glass-card">
+        <p><strong>Important Disclaimer / महत्वपूर्ण अस्वीकरण:</strong> Astrological readings presented on this platform are interpretive guidance based on traditional systems, not guaranteed scientific facts. Nothing here guarantees specific life outcomes. Individual free will, conscious decisions, personal effort, and external circumstances always shape the final result. Use this information as a tool for self-reflection, not as a substitute for professional financial, medical, legal or relationship advice.</p>
+      </div>
+      <p style="margin-top:18px;">Powered by <strong>PROPHECY</strong> • Mystic Insights, Infinite Possibilities.</p>
     </footer>
   </div>
 
