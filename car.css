@@ -375,6 +375,62 @@ body.popup-open::before {
 }
 
 /* ================= 1. ONBOARDING & BIRTH DETAILS ================= */
+.intro-mode .app-header,
+.intro-mode .main-nav { display: none; }
+
+.prophecy-intro {
+  position: relative;
+  min-height: calc(100vh - 32px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  animation: introReveal 1.2s ease both;
+}
+
+.prophecy-intro::before,
+.prophecy-intro::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgba(255, 209, 102, 0.14);
+  border-radius: 50%;
+  width: min(72vw, 720px);
+  aspect-ratio: 1;
+  box-shadow: 0 0 80px rgba(76, 201, 240, 0.08), inset 0 0 80px rgba(255, 209, 102, 0.04);
+  animation: constellationDrift 18s ease-in-out infinite alternate;
+}
+
+.prophecy-intro::after { width: min(48vw, 480px); border-color: rgba(76, 201, 240, 0.12); animation-duration: 25s; animation-direction: alternate-reverse; }
+.intro-constellation { position: absolute; inset: 0; z-index: -2; background: radial-gradient(circle at 50% 45%, rgba(114, 9, 183, 0.22), transparent 28%), radial-gradient(circle at 50% 48%, rgba(255, 209, 102, 0.1), transparent 12%); }
+.intro-constellation::before { content: ''; position: absolute; inset: 0; opacity: .55; background-image: radial-gradient(1px 1px at 17% 24%, #fff, transparent 2px), radial-gradient(1px 1px at 77% 19%, var(--color-gold), transparent 2px), radial-gradient(1px 1px at 84% 72%, #fff, transparent 2px), radial-gradient(1px 1px at 27% 78%, var(--color-cyan), transparent 2px), radial-gradient(1px 1px at 63% 84%, var(--color-magenta), transparent 2px); animation: starFloat 14s ease-in-out infinite alternate; }
+.intro-content { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+.intro-mark { display: flex; align-items: center; gap: 10px; color: var(--color-gold); font: 700 .72rem var(--font-mono); letter-spacing: .2em; }
+.intro-mark img { width: 34px; height: 34px; object-fit: cover; border: 1px solid var(--color-gold); border-radius: 50%; }
+.intro-kicker { color: var(--color-cyan); font: 700 .68rem var(--font-mono); letter-spacing: .28em; margin-top: 20px; }
+.intro-content h1 { color: #fff; font: 800 clamp(3.4rem, 10vw, 7.5rem)/.95 var(--font-display); letter-spacing: .08em; text-shadow: 0 0 32px rgba(255, 209, 102, .22); }
+.intro-line { color: var(--text-secondary); font: 300 clamp(1rem, 2vw, 1.2rem) var(--font-main); letter-spacing: .08em; }
+.prophecy-cta { position: relative; display: inline-flex; align-items: center; gap: 22px; margin-top: 28px; padding: 17px 24px 17px 28px; color: #fff; background: rgba(8, 11, 25, .72); border: 1px solid rgba(255, 209, 102, .62); border-radius: 7px; box-shadow: 0 0 0 5px rgba(255, 209, 102, .04), 0 0 32px rgba(255, 209, 102, .16); cursor: pointer; font: 700 .8rem var(--font-mono); letter-spacing: .12em; transition: transform .3s ease, box-shadow .3s ease, background .3s ease; animation: ctaBreathe 4s ease-in-out infinite; }
+.prophecy-cta::before { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.16), transparent 65%); transform: translateX(-120%); animation: lightSweep 5s ease-in-out infinite; }
+.prophecy-cta:hover { transform: translateY(-3px) scale(1.025); background: rgba(20, 27, 52, .9); box-shadow: 0 0 0 5px rgba(255, 209, 102, .07), 0 0 44px rgba(255, 209, 102, .3); }
+.prophecy-cta:focus-visible { outline: 3px solid var(--color-cyan); outline-offset: 5px; }
+.cta-arrow { color: var(--color-gold); font-size: 1.25rem; }
+.intro-exit { animation: introExit .65s ease forwards; }
+.form-section-heading { padding-bottom: 6px; text-align: center; border-bottom: 1px solid var(--border-glass); }
+.form-section-heading h2 { color: #fff; font: 700 1.5rem var(--font-display); }
+.form-section-heading p { color: var(--text-secondary); font-size: .9rem; }
+.form-eyebrow { color: var(--color-gold); font: 700 .68rem var(--font-mono); letter-spacing: .2em; }
+.contact-field { position: relative; }
+.privacy-note { color: var(--text-muted); font-size: .76rem; text-align: center; margin-top: -6px; }
+
+@keyframes introReveal { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: scale(1); } }
+@keyframes introExit { to { opacity: 0; transform: scale(1.08); filter: blur(8px); } }
+@keyframes constellationDrift { to { transform: rotate(14deg) scale(1.05); } }
+@keyframes starFloat { to { transform: translate3d(0, 10px, 0) scale(1.04); opacity: .8; } }
+@keyframes ctaBreathe { 50% { box-shadow: 0 0 0 5px rgba(255, 209, 102, .06), 0 0 42px rgba(255, 209, 102, .25); } }
+@keyframes lightSweep { 0%, 55% { transform: translateX(-120%); } 75%, 100% { transform: translateX(120%); } }
+
 .onboarding-section {
   max-width: 700px;
   margin: 0 auto;
@@ -1801,6 +1857,10 @@ input[type="file"]::file-selector-button {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 
 /* ================= MOBILE OPTIMIZATION ================= */

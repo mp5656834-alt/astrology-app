@@ -81,8 +81,19 @@
 
     <main class="main-content">
 
+      <section id="prophecyIntro" class="prophecy-intro" aria-labelledby="prophecyIntroTitle">
+        <div class="intro-constellation" aria-hidden="true"></div>
+        <div class="intro-content">
+          <div class="intro-mark"><img src="assets/destiny_nexus_logo.jpg" alt="" /><span>PROPHECY</span></div>
+          <p class="intro-kicker">THE CELESTIAL ARCHIVE</p>
+          <h1 id="prophecyIntroTitle">PROPHECY</h1>
+          <p class="intro-line">Your story is written in the sky.</p>
+          <button id="enterProphecyBtn" class="prophecy-cta" type="button"><span>LET'S CHECK YOUR PROPHECY</span><span class="cta-arrow" aria-hidden="true">&#8594;</span></button>
+        </div>
+      </section>
+
       <!-- ============ 1. ONBOARDING & BIRTH DETAILS FORM ============ -->
-      <section id="onboardingSection" class="onboarding-section">
+      <section id="onboardingSection" class="onboarding-section hidden">
         <div class="hero-intro glass-card">
           <div class="hero-logo-container">
             <div class="hero-logo-wrap"><img src="assets/destiny_nexus_logo.jpg" alt="PROPHECY" class="hero-center-logo" /><span class="logo-name-overlay">PROPHECY</span></div>
@@ -93,14 +104,16 @@
           <p class="hero-subtext">A commercially-ready astrology platform using real astronomical ephemeris calculations — Western Tropical zodiac, Vedic Sidereal (Lahiri Ayanamsa), accurate Nakshatra/Pada from actual Moon position, Vimshottari Dasha life periods, traditional Kundali Milan 8-Koota, and full Pythagorean numerology. No fabricated values.</p>
           <p class="seo-intro">Use your birth date, time and place to explore a Western birth chart, Vedic Rashi and Nakshatra, Ascendant or Lagna, Vimshottari Dasha periods, marriage compatibility and Pythagorean numerology. Readings are interpretive guidance for reflection and personal insight.</p>
 
-          <form id="astrologyForm" class="astrology-form">
+          <form id="astrologyForm" class="astrology-form" novalidate>
+            <div class="form-section-heading"><span class="form-eyebrow">COSMIC DETAILS</span><h2>Enter your cosmic details</h2><p>Let the stars begin to reveal your story.</p></div>
             <div class="form-grid">
               <div class="form-group">
                 <label for="userName">Full Name</label>
                 <div class="input-wrapper">
                   <span class="input-icon">👤</span>
-                  <input type="text" id="userName" placeholder="e.g. Aryan Sharma" required />
+                  <input type="text" id="userName" placeholder="e.g. Aryan Sharma" autocomplete="name" aria-describedby="userNameError" required />
                 </div>
+                <span id="userNameError" class="field-error hidden" role="alert"></span>
               </div>
               <div class="form-group">
                 <label for="userDob">Date of Birth</label>
@@ -115,7 +128,7 @@
                 <label for="userTob">Time of Birth <span style="opacity:.6">(optional)</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon">⏰</span>
-                  <input type="time" id="userTob" />
+                  <input type="time" id="userTob" step="1" />
                 </div>
                 <span class="field-hint">If unknown, Ascendant/Lagna and house placements are approximated</span>
               </div>
@@ -128,9 +141,12 @@
                 <span class="field-hint">Resolves coordinates, timezone and historical DST automatically</span>
                 <span id="userPobError" class="field-error hidden" role="alert"></span>
               </div>
+              <div class="form-group contact-field"><label for="userPhone">Phone Number</label><div class="input-wrapper"><span class="input-icon">&#9742;</span><input type="tel" id="userPhone" placeholder="e.g. +91 98765 43210" autocomplete="tel" inputmode="tel" aria-describedby="userPhoneError" required /></div><span id="userPhoneError" class="field-error hidden" role="alert"></span></div>
+              <div class="form-group contact-field"><label for="userEmail">Gmail / Email Address</label><div class="input-wrapper"><span class="input-icon">&#9993;</span><input type="email" id="userEmail" placeholder="you@example.com" autocomplete="email" aria-describedby="userEmailError" required /></div><span id="userEmailError" class="field-error hidden" role="alert"></span></div>
             </div>
+            <p class="privacy-note">Your information is used only to personalize your PROPHECY experience.</p>
             <button type="submit" id="calculateSubmitBtn" class="btn btn-hero btn-block">
-              <span>🔮 Calculate My Complete Cosmic Profile</span>
+              <span>REVEAL MY PROPHECY</span>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
             <p class="disclaimer-mini">Astrological readings are interpretive guidance, not guaranteed scientific facts. Individual free will always shapes the final outcome.</p>

@@ -13,7 +13,9 @@
 =============================================================================
 """
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
+from math import atan2, cos, degrees, floor, radians, sin, tan
+from zoneinfo import ZoneInfo
 
 MONSTERS_DB = {
     1: ("Frost Wraith", "Born from winter's silence, it feeds on warmth.", "Glacial Frost & Stillness", "Cryo-Shield & Absolute Focus"),
@@ -87,22 +89,71 @@ NAKSHATRAS = [
 ]
 
 
-def calculate_kundli(birth_date: date, birth_time_str: str) -> dict:
-    try:
-        hour, minute = [int(p) for p in birth_time_str.split(":")]
-    except Exception:
-        hour, minute = 12, 0
+def _julian_day(utc_birth: datetime) -> float:
+    """Return the Gregorian Julian Day for an aware UTC datetime."""
+    value = utc_birth.astimezone(timezone.utc)
+    year, month = value.year, value.month
+    day = value.day + (value.hour + value.minute / 60 + value.second / 3600) / 24
+    if month <= 2:
+        year -= 1
+        month += 12
+    century = floor(year / 100)
+    correction = 2 - century + floor(century / 4)
+    return floor(365.25 * (year + 4716)) + floor(30.6001 * (month + 1)) + day + correction - 1524.5
 
-    day_of_year = birth_date.timetuple().tm_yday
-    sun_idx = int(((day_of_year + 285) % 365) / 30.4) % 12
-    time_progress = (hour + minute / 60) / 2.0
-    lagna_idx = int((sun_idx + time_progress) % 12)
-    moon_idx = (day_of_year + 7) % 12
-    nakshatra_idx = (day_of_year * 3 + birth_date.day) % 27
+
+def _greenwich_sidereal_time(julian_day: float) -> float:
+    day_start = floor(julian_day - 0.5) + 0.5
+    hours = (julian_day - day_start) * 24
+    centuries = (day_start - 2451545.0) / 36525
+    sidereal_hours = 6.697374558 + 2400.051336 * centuries + 0.000025862 * centuries**2 + 1.00273790935 * hours
+    return (sidereal_hours % 24) * 15
+
+
+def _ascendant_longitude(julian_day: float, latitude: float, longitude: float) -> float:
+    """Calculate the tropical ecliptic Ascendant from UT and birthplace coordinates."""
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        raise ValueError("Birth latitude must be between -90 and 90 and longitude between -180 and 180.")
+    local_sidereal = radians((_greenwich_sidereal_time(julian_day) + longitude) % 360)
+    obliquity = radians(23.4392911 - 0.00000036 * ((julian_day - 2451545.0) / 36525))
+    return (degrees(atan2(
+        cos(local_sidereal),
+        -(sin(local_sidereal) * cos(obliquity) + tan(radians(latitude)) * sin(obliquity)),
+    )) % 360)
+
+
+def calculate_kundli(birth_date: date, birth_time_str: str, latitude: float, longitude: float, timezone_name: str) -> dict:
+    try:
+        local_time = datetime.strptime(birth_time_str, "%H:%M:%S").time()
+    except ValueError:
+        try:
+            local_time = datetime.strptime(birth_time_str, "%H:%M").time()
+        except ValueError as error:
+            raise ValueError("Birth time must use HH:MM or HH:MM:SS.") from error
+    try:
+        local_birth = datetime.combine(birth_date, local_time, tzinfo=ZoneInfo(timezone_name))
+    except Exception as error:
+        raise ValueError("Birthplace timezone must be a valid IANA timezone, such as Asia/Kolkata.") from error
+    julian_day = _julian_day(local_birth.astimezone(timezone.utc))
+    tropical_ascendant = _ascendant_longitude(julian_day, float(latitude), float(longitude))
+    ayanamsa = 23.8544 + 0.00013968 * (julian_day - 2451545.0)
+    sidereal_ascendant = (tropical_ascendant - ayanamsa) % 360
+    lagna_idx = int(sidereal_ascendant // 30)
+    degree = sidereal_ascendant % 30
+    sun_idx = int(((birth_date.timetuple().tm_yday + 285) % 365) / 30.4) % 12
+    moon_idx = (birth_date.timetuple().tm_yday + 7) % 12
+    nakshatra_idx = (birth_date.timetuple().tm_yday * 3 + birth_date.day) % 27
 
     return {
         "lagna_idx": lagna_idx,
         "lagna": RASHIS[lagna_idx],
+        "lagna_longitude": sidereal_ascendant,
+        "lagna_degree": degree,
+        "utc": local_birth.astimezone(timezone.utc).isoformat(),
+        "julian_day": julian_day,
+        "latitude": float(latitude),
+        "longitude": float(longitude),
+        "timezone": timezone_name,
         "lagna_lord": LORDS[lagna_idx],
         "moon_sign": RASHIS[moon_idx],
         "sun_sign": RASHIS[sun_idx],
@@ -143,7 +194,7 @@ def calculate_destiny_coordinates(name: str, birth_date: date, hour: int, lagna_
     }
 
 
-def generate_dossier(name: str, dob_str: str, tob_str: str, pob_str: str) -> str:
+def generate_dossier(name: str, dob_str: str, tob_str: str, pob_str: str, latitude: float, longitude: float, timezone_name: str) -> str:
     birth_date = datetime.strptime(dob_str, "%Y-%m-%d").date()
     today = date.today()
     age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
@@ -159,7 +210,7 @@ def generate_dossier(name: str, dob_str: str, tob_str: str, pob_str: str) -> str
     # Calculations
     monster_name, monster_quote, monster_affinity, monster_power = MONSTERS_DB.get(birth_date.month, MONSTERS_DB[1])
     tattoo_name, tattoo_quote, tattoo_meaning = TATTOOS_DB.get(birth_date.day, TATTOOS_DB[1])
-    kundli = calculate_kundli(birth_date, tob_str)
+    kundli = calculate_kundli(birth_date, tob_str, latitude, longitude, timezone_name)
     destiny = calculate_destiny_coordinates(name, birth_date, hour, kundli["lagna_idx"])
 
     border = "=" * 84
@@ -175,6 +226,7 @@ def generate_dossier(name: str, dob_str: str, tob_str: str, pob_str: str) -> str
         f"  🎂 Date of Birth    : {birth_date.strftime('%B %d, %Y')} ({age} Solar Orbits)",
         f"  ⏰ Time of Birth    : {tob_str}",
         f"  📍 Place of Birth   : {pob_str}",
+        f"  🌐 Coordinates       : {latitude}, {longitude} ({timezone_name})",
         f"  ⏱️  Chronometry     : ~{days_lived:,} Days Lived | ~{hours_lived:,} Hours Lived",
         f"  💓 Heartbeats Taken : ~{heartbeats:,} beats (@ 75 bpm)",
         sub_border,
@@ -204,6 +256,8 @@ def generate_dossier(name: str, dob_str: str, tob_str: str, pob_str: str) -> str
         "  🕉️ VEDIC JANAM KUNDALI & PLANETARY ALIGNMENTS",
         sub_border,
         f"  • Ascendant (Lagna) : {kundli['lagna']}",
+        f"  • Lagna Longitude   : {kundli['lagna_longitude']:.6f}° ({kundli['lagna_degree']:.6f}° sign degree)",
+        f"  • UTC / Julian Day  : {kundli['utc']} / {kundli['julian_day']:.6f}",
         f"  • Lagna Lord        : {kundli['lagna_lord']}",
         f"  • Moon Sign (Rashi) : {kundli['moon_sign']}",
         f"  • Sun Sign (Surya)  : {kundli['sun_sign']}",
@@ -246,11 +300,14 @@ def main():
         except ValueError:
             print("❌ Invalid format. Please use YYYY-MM-DD.")
 
-    tob_in = input("Enter Time of Birth (HH:MM, 24-hour e.g. 10:30 or 22:15) [default 12:00]: ").strip() or "12:00"
-    pob_in = input("Enter Place of Birth (City / Country e.g. Mumbai, India): ").strip() or "Global"
+    tob_in = input("Enter Time of Birth (HH:MM[:SS], 24-hour e.g. 10:30 or 22:15) [default 12:00]: ").strip() or "12:00"
+    pob_in = input("Enter Place of Birth (City / Country e.g. Mumbai, India): ").strip() or "Unknown"
+    latitude = float(input("Enter birthplace latitude (e.g. 19.076): ").strip())
+    longitude = float(input("Enter birthplace longitude (e.g. 72.8777): ").strip())
+    timezone_name = input("Enter IANA timezone (e.g. Asia/Kolkata): ").strip()
 
     print("\n🔮 Calculating your Destiny Coordinates, Vedic Kundli, Month Monster & Birth Date Tattoo...")
-    report = generate_dossier(name, dob_in, tob_in, pob_in)
+    report = generate_dossier(name, dob_in, tob_in, pob_in, latitude, longitude, timezone_name)
     print("\n" + report)
 
 

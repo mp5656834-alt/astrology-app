@@ -209,7 +209,7 @@ const I18N = {
     dobLabel: 'Date of Birth',
     tobLabel: 'Time of Birth',
     pobLabel: 'Place of Birth',
-    submitBtn: '🔮 Reveal My Complete Profile',
+    submitBtn: 'REVEAL MY PROPHECY',
     welcome: 'Welcome',
     cosmicProfile: 'Your Cosmic Identity',
     westernSection: 'Western Astrology',
@@ -302,7 +302,7 @@ const I18N = {
     dobLabel: 'जन्म तिथि',
     tobLabel: 'जन्म समय',
     pobLabel: 'जन्म स्थान',
-    submitBtn: '🔮 मेरी पूरी पहचान प्रकट करें',
+    submitBtn: 'मेरी PROPHECY प्रकट करें',
     welcome: 'स्वागत है',
     cosmicProfile: 'आपकी ब्रह्मांडीय पहचान',
     westernSection: 'पश्चिमी ज्योतिष',
@@ -510,11 +510,41 @@ function calcGST(JD) {
 }
 
 function calcAscendant(JD, longitude, latitude) {
+  if (!Number.isFinite(JD) || !Number.isFinite(longitude) || !Number.isFinite(latitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+    throw new Error('Accurate Lagna calculation requires valid birth coordinates and UTC time.');
+  }
   const lst = normDeg(calcGST(JD) + longitude);
   const epsilon = 23.4392911 - 0.00000036 * julianCenturies(JD);
-  let asc = Math.atan2(Math.tan(lst * DEG), Math.cos(epsilon * DEG) - Math.sin(epsilon * DEG) * Math.tan(latitude * DEG) / Math.cos(lst * DEG)) * RAD2DEG;
-  if (Math.sin(lst * DEG) < 0) asc += 180;
-  return normDeg(asc);
+  const theta = lst * DEG;
+  const phi = latitude * DEG;
+  const obliquity = epsilon * DEG;
+  // Ecliptic/equatorial horizon intersection. atan2 preserves the correct quadrant.
+  return normDeg(Math.atan2(
+    Math.cos(theta),
+    -(Math.sin(theta) * Math.cos(obliquity) + Math.tan(phi) * Math.sin(obliquity))
+  ) * RAD2DEG);
+}
+
+function calcMidheaven(JD, longitude) {
+  const lst = normDeg(calcGST(JD) + longitude) * DEG;
+  const epsilon = (23.4392911 - 0.00000036 * julianCenturies(JD)) * DEG;
+  return normDeg(Math.atan2(Math.sin(lst), Math.cos(lst) * Math.cos(epsilon)) * RAD2DEG);
+}
+
+function formatLongitude(longitude) {
+  const totalSeconds = Math.round(getSignDegree(longitude) * 3600);
+  return `${Math.floor(totalSeconds / 3600)}° ${Math.floor((totalSeconds % 3600) / 60)}' ${totalSeconds % 60}"`;
+}
+
+function emitLagnaDiagnostic(profile) {
+  if (!['localhost', '127.0.0.1', '::1'].includes(window.location?.hostname) || localStorage.getItem('prophecy_debug') !== '1') return;
+  console.info('[PROPHECY lagna diagnostic]', {
+    birthDate: profile.dateOfBirth, localBirthTime: profile.tobStr,
+    latitude: profile.latitude, longitude: profile.longitude, timezone: profile.timezone,
+    utc: profile.utcBirthTime, julianDay: profile.JD, zodiac: 'Sidereal',
+    ayanamsha: 'Lahiri', houseSystem: 'Equal houses',
+    ascendantLongitude: profile.vedic.lagna.long, lagna: profile.vedic.lagna.sign.en
+  });
 }
 
 function calcEqualHouses(ascLong) {
@@ -571,16 +601,20 @@ function resolvePlace(placeStr) {
 async function resolvePlaceOnline(placeStr) {
   const local = resolvePlace(placeStr);
   if (local.resolved) return local;
-  const query = encodeURIComponent(placeStr.toLowerCase().includes('india') ? placeStr : `${placeStr}, India`);
+  const query = encodeURIComponent(placeStr);
   const response = await fetch(`https://photon.komoot.io/api/?q=${query}&limit=1`, { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error('Please select the correct birthplace.');
   const data = await response.json();
   const feature = data.features && data.features[0];
   const coordinates = feature && feature.geometry && feature.geometry.coordinates;
   if (!coordinates || !Number.isFinite(coordinates[0]) || !Number.isFinite(coordinates[1])) throw new Error('Please select the correct birthplace.');
-  const country = feature.properties && feature.properties.country || '';
-  if (!/india/i.test(country)) throw new Error('Please select the correct birthplace.');
-  return { lat: coordinates[1], lon: coordinates[0], tz: 'Asia/Kolkata', resolved: true, name: placeStr, country: 'India', source: 'Photon geocoder' };
+  const country = feature.properties && feature.properties.country || 'Unknown';
+  const timezoneResponse = await fetch(`https://timeapi.io/api/timezone/coordinate?latitude=${coordinates[1]}&longitude=${coordinates[0]}`, { headers: { Accept: 'application/json' } });
+  if (!timezoneResponse.ok) throw new Error('We could not resolve the birthplace timezone.');
+  const timezoneData = await timezoneResponse.json();
+  const timezone = timezoneData.timeZone || timezoneData.ianaTimeId || timezoneData.timeZoneId;
+  if (!timezone || (typeof Intl.supportedValuesOf === 'function' && !Intl.supportedValuesOf('timeZone').includes(timezone))) throw new Error('We could not resolve the birthplace timezone.');
+  return { lat: coordinates[1], lon: coordinates[0], tz: timezone, resolved: true, name: placeStr, country, source: 'Photon geocoder + coordinate timezone database' };
 }
 
 function estimateUTCOffsetMinutes(tzName, dateStr, timeStr) {
@@ -610,6 +644,8 @@ class BirthProfile {
   constructor(input) {
     this.resolvedPlace = input.resolvedPlace || null;
     this.name = input.name || 'Cosmic Traveler';
+    this.phone = input.phone || '';
+    this.email = input.email || '';
     this.dobStr = input.dob;
     this.tobStr = input.tob || '12:00';
     this.pobStr = input.pob || 'Global';
@@ -623,18 +659,21 @@ class BirthProfile {
     const [y, m, d] = this.dobStr.split('-').map(Number);
     const dateCheck = new Date(Date.UTC(y, m - 1, d));
     if (dateCheck.getUTCFullYear() !== y || dateCheck.getUTCMonth() !== m - 1 || dateCheck.getUTCDate() !== d) throw new Error('Please select a valid date of birth.');
-    const [hh, mm] = this.tobStr.split(':').map(Number);
+    const [hh, mm, ss = 0] = this.tobStr.split(':').map(Number);
+    if (!Number.isInteger(hh) || !Number.isInteger(mm) || !Number.isInteger(ss) || hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59) throw new Error('Please enter a valid time of birth.');
     this.year = y; this.month = m; this.day = d;
     this.hour = isNaN(hh) ? 12 : hh;
     this.minute = isNaN(mm) ? 0 : mm;
+    this.second = isNaN(ss) ? 0 : ss;
     this.place = this.resolvedPlace || resolvePlace(this.pobStr);
     if (!this.place.resolved) throw new Error('Please select the correct birthplace.');
+    if (!Number.isFinite(this.place.lat) || !Number.isFinite(this.place.lon) || Math.abs(this.place.lat) > 90 || Math.abs(this.place.lon) > 180 || !this.place.tz) throw new Error('Accurate Lagna calculation requires a resolved birthplace timezone and coordinates.');
     this.utcOffsetMin = estimateUTCOffsetMinutes(this.place.tz, this.dobStr, this.tobStr);
     if (this.utcOffsetMin === null) throw new Error('We could not resolve the birthplace timezone.');
     this.utcHour = this.hour - Math.floor(this.utcOffsetMin / 60);
     this.utcMin = this.minute - (this.utcOffsetMin % 60);
-    this.JD = julianDay(y, m, d, this.hour - this.utcOffsetMin / 60, this.minute, 0);
-    this.utcTimestamp = new Date(Date.UTC(y, m - 1, d, this.utcHour, this.utcMin)).toISOString();
+    this.JD = julianDay(y, m, d, this.hour - this.utcOffsetMin / 60, this.minute, this.second);
+    this.utcTimestamp = new Date(Date.UTC(y, m - 1, d, this.utcHour, this.utcMin, this.second)).toISOString();
     this.dateOfBirth = this.dobStr;
     this.timeOfBirth = this.unknownTime ? null : this.tobStr;
     this.birthPlace = this.pobStr;
@@ -644,6 +683,7 @@ class BirthProfile {
     this.utcBirthTime = this.utcTimestamp;
     this.ayanamsa = AYANAMSA_LAHIRI_2000 + 0.00013968 * (this.JD - 2451545.0);
     this._calcAstro();
+    emitLagnaDiagnostic(this);
   }
 
   _calcAstro() {
@@ -664,7 +704,7 @@ class BirthProfile {
     const ascTropical = (this.birthTimeAvailable && (lat !== 0 || lon !== 0))
       ? calcAscendant(JD, lon, lat)
       : sunTropical;
-    const mcTropical = normDeg(ascTropical + 270);
+    const mcTropical = calcMidheaven(JD, lon);
 
     const houses = calcEqualHouses(ascTropical);
 
@@ -1339,6 +1379,39 @@ function setPlaceError(message = '') {
   }
 }
 
+function setContactError(id, message = '') {
+  const input = document.getElementById(id);
+  const error = document.getElementById(`${id}Error`);
+  if (input) input.setCustomValidity(message);
+  if (error) {
+    error.textContent = message;
+    error.classList.toggle('hidden', !message);
+  }
+}
+
+function showProphecyIntro() {
+  document.getElementById('prophecyIntro')?.classList.remove('hidden');
+  document.getElementById('onboardingSection')?.classList.add('hidden');
+  document.body.classList.add('intro-mode');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showProphecyForm(pushState = true) {
+  const intro = document.getElementById('prophecyIntro');
+  const form = document.getElementById('onboardingSection');
+  if (!intro || !form) return;
+  intro.classList.add('intro-exit');
+  document.body.classList.add('transition-open');
+  window.setTimeout(() => {
+    intro.classList.add('hidden');
+    intro.classList.remove('intro-exit');
+    form.classList.remove('hidden');
+    document.body.classList.remove('intro-mode', 'transition-open');
+    if (pushState) history.pushState({ prophecy: true }, '', `${window.location.pathname}#get-started`);
+    document.getElementById('userName')?.focus();
+  }, 650);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const restoredInput = App.restore('profile');
   if (restoredInput && document.getElementById('userName')) {
@@ -1346,7 +1419,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('userDob').value = restoredInput.dob || '';
     document.getElementById('userTob').value = restoredInput.tob || '12:00';
     document.getElementById('userPob').value = restoredInput.pob || '';
+    document.getElementById('userPhone').value = restoredInput.phone || '';
+    document.getElementById('userEmail').value = restoredInput.email || '';
   }
+
+  document.body.classList.add('intro-mode');
+  document.getElementById('enterProphecyBtn')?.addEventListener('click', () => showProphecyForm());
+  window.addEventListener('popstate', () => showProphecyIntro());
+  window.addEventListener('hashchange', () => {
+    if (!window.location.hash) showProphecyIntro();
+  });
 
   const langBtns = document.querySelectorAll('[data-lang]');
   langBtns.forEach(btn => btn.addEventListener('click', () => App.setLang(btn.dataset.lang)));
@@ -1359,6 +1441,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dobInput) dobInput.addEventListener('input', () => setBirthDateError());
     const placeInput = document.getElementById('userPob');
     if (placeInput) placeInput.addEventListener('input', () => setPlaceError());
+    const phoneInput = document.getElementById('userPhone');
+    if (phoneInput) phoneInput.addEventListener('input', () => setContactError('userPhone'));
+    const emailInput = document.getElementById('userEmail');
+    if (emailInput) emailInput.addEventListener('input', () => setContactError('userEmail'));
   }
 
   const kundaliForm = document.getElementById('kundaliForm');
@@ -1388,7 +1474,7 @@ function resetReading() {
   App.profile = null;
   document.getElementById('resultsContainer').classList.add('hidden');
   document.getElementById('mainNav').classList.add('hidden');
-  document.getElementById('onboardingSection').classList.remove('hidden');
+  showProphecyIntro();
   document.getElementById('astrologyForm').reset();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1432,12 +1518,21 @@ function closeSection() {
 
 async function handleMainSubmit(e) {
   e.preventDefault();
-  const name = document.getElementById('userName').value.trim() || 'Cosmic Traveler';
+  const nameInput = document.getElementById('userName');
+  const name = nameInput.value.trim();
   const dobInput = document.getElementById('userDob');
   const dob = normalizeBirthDate(dobInput.value);
   const tob = document.getElementById('userTob').value;
   const placeInput = document.getElementById('userPob');
   const pob = placeInput.value.trim();
+  const phone = document.getElementById('userPhone').value.trim();
+  const email = document.getElementById('userEmail').value.trim();
+  if (!name) {
+    setContactError('userName', 'Please enter your full name.');
+    nameInput.focus();
+    return;
+  }
+  setContactError('userName');
   if (!dob) {
     setBirthDateError('Please select a valid date of birth.');
     dobInput.focus();
@@ -1450,6 +1545,18 @@ async function handleMainSubmit(e) {
     return;
   }
   setPlaceError();
+  if (!/^\+?[0-9][0-9\s().-]{7,19}$/.test(phone) || phone.replace(/\D/g, '').length < 8) {
+    setContactError('userPhone', 'Please enter a valid phone number.');
+    document.getElementById('userPhone').focus();
+    return;
+  }
+  setContactError('userPhone');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    setContactError('userEmail', 'Please enter a valid email address.');
+    document.getElementById('userEmail').focus();
+    return;
+  }
+  setContactError('userEmail');
 
   let resolvedPlace;
   try {
@@ -1463,7 +1570,7 @@ async function handleMainSubmit(e) {
   }
   let profile;
   try {
-    profile = App.createProfile({ name, dob, tob, pob, resolvedPlace });
+    profile = App.createProfile({ name, dob, tob, pob, phone, email, resolvedPlace });
   } catch (error) {
     alert(error.message || "We couldn't calculate your chart. Please verify your birth details and try again.");
     return;
@@ -1553,11 +1660,11 @@ function renderCosmicProfile(p, wInt, vInt) {
   const w = p.western, v = p.vedic;
   document.getElementById('cpWSun').textContent = `${w.sun.sign.symbol} ${w.sun.sign.en} (${Math.round(w.sun.degree * 10) / 10}° House ${w.sun.house})`;
   document.getElementById('cpWMoon').textContent = `${w.moon.sign.symbol} ${w.moon.sign.en} (${Math.round(w.moon.degree * 10) / 10}° House ${w.moon.house})`;
-  document.getElementById('cpWAsc').textContent = `${w.ascendant.sign.symbol} ${w.ascendant.sign.en} (${Math.round(w.ascendant.degree * 10) / 10}°)`;
+  document.getElementById('cpWAsc').textContent = `${w.ascendant.sign.symbol} ${w.ascendant.sign.en} (${formatLongitude(w.ascendant.long)})`;
   document.getElementById('cpVRashi').textContent = `${v.rashi.sign.symbol} ${v.rashi.sign.en} (${v.rashi.sign.hi})`;
   document.getElementById('cpVNak').textContent = `⭐ ${v.nakshatra.en} (${v.nakshatra.hi})`;
   document.getElementById('cpVPada').textContent = `🔹 Pada ${v.pada} / 4`;
-  document.getElementById('cpVLagna').textContent = `${v.lagna.sign.symbol} ${v.lagna.sign.en} (${v.lagna.sign.hi} लग्न)`;
+  document.getElementById('cpVLagna').textContent = `${v.lagna.sign.symbol} ${v.lagna.sign.en} (${v.lagna.sign.hi} लग्न, ${formatLongitude(v.lagna.long)})`;
   document.getElementById('cpSystemExplain').textContent = `Western Astrology uses the Tropical zodiac, tied to the solstices/equinoxes (aligning Sun in Aries on March 21). Vedic Astrology uses the Sidereal zodiac, accounting for the Earth's precessional wobble (Lahiri Ayanamsa: ${v.ayanamsa.toFixed(2)}° offset). This means your Vedic Rashi is typically ~1 sign earlier than your Western Sun sign.`;
 }
 
@@ -1609,7 +1716,7 @@ function renderVedicSection(p, vInt) {
   ];
   const tb = document.getElementById('vedicTableBody');
   tb.innerHTML = rows.map(r => `<tr><td style="font-weight:700;color:#fff;">${r.name}</td><td style="color:var(--color-gold);font-weight:600;">${signEn(r.pl)}<br/><small style="opacity:.7">${Math.round(r.pl.degree * 10) / 10}° · Bhava ${r.pl.house}</small></td><td style="color:var(--color-cyan);">Lord: ${VEDIC_RASHI_LORDS[r.pl.signIdx]}</td><td>${r.kw}</td></tr>`).join('');
-  document.getElementById('vLagna').textContent = signEn(v.lagna);
+  document.getElementById('vLagna').textContent = `${signEn(v.lagna)} · ${formatLongitude(v.lagna.long)}`;
   document.getElementById('vLagnaLord').textContent = v.lagnaLord;
   document.getElementById('vRashi').textContent = signEn(v.rashi);
   document.getElementById('vRashiLord').textContent = v.rashiLord;
@@ -1881,3 +1988,4 @@ async function handleCompatSubmit(e) {
 
 window.handleKundaliSubmit = handleKundaliSubmit;
 window.handleCompatSubmit = handleCompatSubmit;
+window.__PROPHECY_ASTRONOMY__ = { julianDay, calcGST, calcAscendant, calcMidheaven, normDeg, getSignIndex, getSignDegree, estimateUTCOffsetMinutes };
