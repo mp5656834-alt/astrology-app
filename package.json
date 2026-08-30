@@ -1,0 +1,12 @@
+{
+  "name": "prophecy-astrology",
+  "version": "1.0.0",
+  "description": "PROPHECY — Premium Astrology, Vedic Jyotish & Numerology Platform",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}

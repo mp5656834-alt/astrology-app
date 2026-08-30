@@ -2,70 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Create a personalized astrology birth chart with Western astrology, Vedic Jyotish, Kundli, Nakshatra, Lagna, Kundali Milan and numerology insights from PROPHECY." />
-  <meta name="robots" content="index, follow, max-image-preview:large" />
-  <meta name="author" content="PROPHECY" />
-  <meta name="theme-color" content="#070913" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="PROPHECY" />
-  <meta property="og:title" content="PROPHECY | Astrology, Vedic Jyotish and Numerology" />
-  <meta property="og:description" content="Explore Western astrology, Vedic Kundli, Nakshatra, Kundali Milan and numerology insights with a personalized birth profile." />
-  <meta property="og:image" content="assets/destiny_nexus_logo.jpg" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="PROPHECY | Astrology, Vedic Jyotish and Numerology" />
-  <meta name="twitter:description" content="Create a personalized astrology birth chart and explore Vedic Jyotish, numerology and compatibility insights." />
-  <!-- Replace the placeholder URL with the public URL where this site is deployed. -->
-  <link rel="canonical" href="https://YOUR-DOMAIN.example/" />
-  <title>PROPHECY | Astrology, Vedic Jyotish &amp; Numerology</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PROPHECY | Premium Astrology • Vedic Jyotish • Numerology Platform</title>
+  <meta name="description" content="PROPHECY - Professional Premium Astrology Platform. Accurate Vedic Kundli, Western Astrology, Nakshatra, Lagna, Kundali Milan, Marriage Compatibility, Numerology Reports & Life Periods." />
   <link rel="icon" type="image/jpeg" href="assets/destiny_nexus_logo.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&family=Cinzel:wght@600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="car.css?v=intro3" />
-  <style>
-    .opening-splash {
-      position: fixed !important;
-      inset: 0 !important;
-      z-index: 99999 !important;
-      display: grid !important;
-      place-items: center !important;
-      background: #070913 !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-    }
-    .opening-splash.hidden,
-    .opening-splash.is-exiting.hidden { display: none !important; }
-  </style>
+  <link rel="stylesheet" href="car.css" />
 </head>
 <body>
-  <div id="openingSplash" class="opening-splash" role="dialog" aria-modal="true" aria-labelledby="splashTitle" aria-describedby="splashLine">
-    <div class="splash-void" aria-hidden="true">
-      <div class="splash-ring splash-ring-outer"></div>
-      <div class="splash-ring splash-ring-mid"></div>
-      <div class="splash-ring splash-ring-inner"></div>
-      <div class="splash-zodiac">
-        <span style="--i:0">♈</span><span style="--i:1">♉</span><span style="--i:2">♊</span><span style="--i:3">♋</span>
-        <span style="--i:4">♌</span><span style="--i:5">♍</span><span style="--i:6">♎</span><span style="--i:7">♏</span>
-        <span style="--i:8">♐</span><span style="--i:9">♑</span><span style="--i:10">♒</span><span style="--i:11">♓</span>
-      </div>
-      <div class="splash-nums">
-        <span style="--i:0">1</span><span style="--i:1">2</span><span style="--i:2">3</span><span style="--i:3">4</span>
-        <span style="--i:4">5</span><span style="--i:5">6</span><span style="--i:6">7</span><span style="--i:7">8</span>
-        <span style="--i:8">9</span><span style="--i:9">11</span><span style="--i:10">22</span><span style="--i:11">33</span>
-      </div>
-      <span class="splash-planet splash-planet-gold"></span>
-      <span class="splash-planet splash-planet-cyan"></span>
-      <span class="splash-planet splash-planet-magenta"></span>
-    </div>
-    <div class="splash-copy">
-      <p class="splash-kicker">Astrology · Numerology · Jyotish</p>
-      <h2 id="splashTitle">PROPHECY</h2>
-      <p id="splashLine" class="splash-line">The stars and numbers are aligning for you.</p>
-      <div class="splash-meter" aria-hidden="true"><span></span></div>
-    </div>
-    <button type="button" id="skipSplashBtn" class="splash-skip">Skip intro</button>
-  </div>
   <div id="calculationTransition" class="calculation-transition hidden" role="status" aria-live="polite" aria-label="Preparing your PROPHECY reading">
     <div class="transition-orbit"><span></span><span></span><span></span></div>
     <p class="transition-kicker">PROPHECY / COSMIC ENGINE</p>
@@ -88,7 +34,7 @@
           <span class="logo-name-overlay">PROPHECY</span>
         </div>
         <div class="brand-text">
-          <p class="brand-title">PROPHECY</p>
+          <h1 class="brand-title">PROPHECY</h1>
           <p class="brand-subtitle">Premium Astrology • Jyotish • Numerology</p>
         </div>
       </div>
@@ -122,26 +68,7 @@
 
     <main class="main-content">
 
-      <section id="prophecyIntro" class="prophecy-intro" aria-labelledby="prophecyIntroTitle">
-        <div class="intro-constellation" aria-hidden="true"></div>
-        <div class="intro-orbit" aria-hidden="true">
-          <span style="--i:0">♈</span><span style="--i:1">♉</span><span style="--i:2">♊</span><span style="--i:3">♋</span>
-          <span style="--i:4">♌</span><span style="--i:5">♍</span><span style="--i:6">♎</span><span style="--i:7">♏</span>
-          <span style="--i:8">♐</span><span style="--i:9">♑</span><span style="--i:10">♒</span><span style="--i:11">♓</span>
-        </div>
-        <div class="intro-num-orbit" aria-hidden="true">
-          <span style="--i:0">1</span><span style="--i:1">2</span><span style="--i:2">3</span><span style="--i:3">4</span>
-          <span style="--i:4">5</span><span style="--i:5">6</span><span style="--i:6">7</span><span style="--i:7">8</span>
-          <span style="--i:8">9</span><span style="--i:9">11</span><span style="--i:10">22</span><span style="--i:11">33</span>
-        </div>
-        <div class="intro-content">
-          <div class="intro-mark"><img src="assets/destiny_nexus_logo.jpg" alt="" /><span>PROPHECY</span></div>
-          <p class="intro-kicker">THE CELESTIAL ARCHIVE</p>
-          <h1 id="prophecyIntroTitle">PROPHECY</h1>
-          <p class="intro-line">Your story is written in the sky and in the numbers.</p>
-          <button id="enterProphecyBtn" class="prophecy-cta" type="button"><span>LET'S CHECK YOUR PROPHECY</span><span class="cta-arrow" aria-hidden="true">&#8594;</span></button>
-        </div>
-      </section>
+      <section id="prophecyIntro" class="prophecy-intro" aria-labelledby="prophecyIntroTitle"><div class="intro-constellation" aria-hidden="true"></div><div class="intro-content"><div class="intro-mark"><img src="assets/destiny_nexus_logo.jpg" alt="" /><span>PROPHECY</span></div><p class="intro-kicker">THE CELESTIAL ARCHIVE</p><h1 id="prophecyIntroTitle">PROPHECY</h1><p class="intro-line">Your story is written in the sky.</p><button id="enterProphecyBtn" class="prophecy-cta" type="button"><span>LET'S CHECK YOUR PROPHECY</span><span class="cta-arrow" aria-hidden="true">&#8594;</span></button></div></section>
 
       <!-- ============ 1. ONBOARDING & BIRTH DETAILS FORM ============ -->
       <section id="onboardingSection" class="onboarding-section hidden">
@@ -150,10 +77,9 @@
             <div class="hero-logo-wrap"><img src="assets/destiny_nexus_logo.jpg" alt="PROPHECY" class="hero-center-logo" /><span class="logo-name-overlay">PROPHECY</span></div>
           </div>
           <div class="hero-badge">✨ Professional Deterministic Ephemeris Engine ✨</div>
-          <h1 class="hero-headline">Free Astrology Birth Chart, Vedic Kundli &amp; Numerology</h1>
+          <h2 class="hero-headline">PROPHECY</h2>
           <p class="hero-tagline">PREMIUM ASTROLOGY • VEDIC JYOTISH • NUMEROLOGY</p>
           <p class="hero-subtext">A commercially-ready astrology platform using real astronomical ephemeris calculations — Western Tropical zodiac, Vedic Sidereal (Lahiri Ayanamsa), accurate Nakshatra/Pada from actual Moon position, Vimshottari Dasha life periods, traditional Kundali Milan 8-Koota, and full Pythagorean numerology. No fabricated values.</p>
-          <p class="seo-intro">Use your birth date, time and place to explore a Western birth chart, Vedic Rashi and Nakshatra, Ascendant or Lagna, Vimshottari Dasha periods, marriage compatibility and Pythagorean numerology. Readings are interpretive guidance for reflection and personal insight.</p>
 
           <form id="astrologyForm" class="astrology-form" novalidate>
             <div class="form-section-heading"><span class="form-eyebrow">COSMIC DETAILS</span><h2>Enter your cosmic details</h2><p>Let the stars begin to reveal your story.</p></div>
@@ -292,6 +218,45 @@
                 <div class="cosmic-row"><span>⚠ Challenge Period</span><strong id="dashChallenge">—</strong></div>
               </div>
             </div>
+          </div>
+
+          <!-- ==================== PERSONALIZED COSMIC REPORT CARD ==================== -->
+          <div class="glass-card cosmic-report-card" id="cosmicReportDashboardCard">
+            <div class="cosmic-report-header">
+              <div class="report-badge-icon">📄</div>
+              <div class="report-header-text">
+                <div class="report-pill-badge">COMPREHENSIVE COSMIC BLUEPRINT</div>
+                <h3 class="report-card-title">📄 Your Complete Cosmic Report</h3>
+                <p class="report-card-desc">Collect all your personalized astrology, numerology and life insights in one beautifully structured report.</p>
+              </div>
+            </div>
+
+            <div class="report-available-sections" id="reportAvailableSections">
+              <span class="report-sec-pill active" id="pillCosmic"><span class="dot">✓</span> Cosmic Profile</span>
+              <span class="report-sec-pill active" id="pillVedic"><span class="dot">✓</span> Vedic Chart & Dashas</span>
+              <span class="report-sec-pill active" id="pillNumerology"><span class="dot">✓</span> Numerology</span>
+              <span class="report-sec-pill active" id="pillMind"><span class="dot">✓</span> Mind & Emotions</span>
+              <span class="report-sec-pill active" id="pillPeriods"><span class="dot">✓</span> Life Periods</span>
+              <span class="report-sec-pill" id="pillMarriage"><span class="dot">+</span> Marriage Compatibility</span>
+              <span class="report-sec-pill" id="pillKundali"><span class="dot">+</span> Kundali Milan</span>
+            </div>
+
+            <div class="report-actions-row">
+              <button type="button" id="btnGenerateReport" class="btn-report-action btn-generate" title="Aggregate all current readings into your structured Cosmic Report">
+                <span class="btn-icon">⚡</span>
+                <span class="btn-text">Generate My Report</span>
+              </button>
+              <button type="button" id="btnDownloadPdf" class="btn-report-action btn-download" title="Download your personalized PDF report directly to your device">
+                <span class="btn-icon">⬇</span>
+                <span class="btn-text">Download PDF</span>
+              </button>
+              <button type="button" id="btnEmailReport" class="btn-report-action btn-email" title="Send your report as a PDF attachment to your verified email address">
+                <span class="btn-icon">✉</span>
+                <span class="btn-text">Send to My Email</span>
+              </button>
+            </div>
+
+            <div id="reportStatusMessage" class="report-status-banner hidden" role="status" aria-live="polite"></div>
           </div>
 
           <div class="dashboard-grid-3col">
@@ -1017,12 +982,6 @@
         </div>
 
       </section>
-      <section class="seo-faq" aria-labelledby="about-prophecy-heading">
-        <h2 id="about-prophecy-heading">Online Astrology and Vedic Jyotish Tools</h2>
-        <p>PROPHECY combines Western tropical astrology with Vedic sidereal calculations, including Rashi, Nakshatra, Lagna, planetary placements and life-period analysis. It also provides numerology and Kundali Milan compatibility tools from the same birth profile.</p>
-        <h2>What information is needed for a birth chart?</h2>
-        <p>A date and place of birth are required. An exact birth time improves the Ascendant, house placements and time-based interpretations; when it is unknown, those results are clearly marked as approximate.</p>
-      </section>
     </main>
 
     <!-- ============ FOOTER ============ -->
@@ -1034,19 +993,42 @@
     </footer>
   </div>
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "PROPHECY Astrology and Numerology",
-    "url": "https://YOUR-DOMAIN.example/",
-    "description": "A browser-based astrology and numerology tool for Western birth charts, Vedic Kundli, Nakshatra, Lagna, Kundali Milan and numerology insights.",
-    "applicationCategory": "LifestyleApplication",
-    "operatingSystem": "Any",
-    "isAccessibleForFree": true,
-    "inLanguage": ["en", "hi"]
-  }
-  </script>
-  <script src="car.js?v=intro3" defer></script>
+  <!-- ==================== EMAIL CONFIRMATION MODAL ==================== -->
+  <div id="emailConfirmModal" class="cosmic-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="glass-card cosmic-modal-card">
+      <button type="button" id="modalCloseBtn" class="modal-close-btn" aria-label="Close modal">&times;</button>
+      <div class="modal-icon-glow">✉</div>
+      <h3 id="modalTitle" class="modal-title">Send Your Cosmic Report?</h3>
+      <p class="modal-desc">Your personalized Cosmic Report will be sent as a PDF attachment to your registered email address.</p>
+      
+      <div class="modal-email-preview">
+        <span class="email-label">Registered Recipient</span>
+        <strong id="modalMaskedEmail" class="masked-email">user***@domain.com</strong>
+      </div>
+
+      <div class="modal-security-note">
+        <span class="lock-icon">🔒</span> Explicit User Confirmation • No Automated Deliveries
+      </div>
+
+      <div id="modalLoadingState" class="modal-loading-box hidden">
+        <div class="loading-spinner"></div>
+        <p id="modalLoadingText">Preparing your report securely...</p>
+      </div>
+
+      <div class="modal-actions-row" id="modalButtonsRow">
+        <button type="button" id="modalCancelBtn" class="btn-modal-cancel">Cancel</button>
+        <button type="button" id="modalConfirmBtn" class="btn-modal-confirm">
+          <span>Send Report</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="car.js"></script>
 </body>
 </html>

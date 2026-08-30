@@ -1210,6 +1210,9 @@ class AppController {
     this.compatProfile = null;
     this.groom = null;
     this.bride = null;
+    this.compatData = null;
+    this.kundaliMilanData = null;
+    this.reportData = null;
     this.cache = {};
   }
 
@@ -1231,6 +1234,7 @@ class AppController {
   createProfile(input) {
     this.profile = new BirthProfile(input);
     this.persist('profile', input);
+    if (window.CosmicReportService) window.CosmicReportService.updateSectionPills();
     return this.profile;
   }
 
@@ -1245,7 +1249,18 @@ class AppController {
   kundaliMilan(groomInput, brideInput) {
     this.groom = new BirthProfile(groomInput);
     this.bride = new BirthProfile(brideInput);
-    return calcKundaliMilan(this.groom, this.bride);
+    const milan = calcKundaliMilan(this.groom, this.bride);
+    this.kundaliMilanData = {
+      groomInput,
+      brideInput,
+      groom: this.groom,
+      bride: this.bride,
+      result: milan,
+      calculatedAt: new Date().toISOString()
+    };
+    this.persist('kundaliMilan', { groomInput, brideInput, calculatedAt: this.kundaliMilanData.calculatedAt });
+    if (window.CosmicReportService) window.CosmicReportService.updateSectionPills();
+    return milan;
   }
 
   compatibilityMarriage(p1Input, p2Input) {
@@ -1254,7 +1269,11 @@ class AppController {
     const milan = calcKundaliMilan(p1, p2);
     const moonSame = p1.vedic.rashi.signIdx === p2.vedic.rashi.signIdx;
     const nakComp = p1.vedic.nakshatra.gana === p2.vedic.nakshatra.gana;
-    return {
+    const result = {
+      p1Input,
+      p2Input,
+      p1,
+      p2,
       kundaliMilan: milan,
       emotional: Math.round(50 + milan.kootas[1].points * 10 + milan.kootas[7].points * 2.5 + (moonSame ? 10 : 0)),
       communication: Math.round(50 + milan.kootas[2].points * 8 + milan.kootas[4].points * 4),
@@ -1264,8 +1283,13 @@ class AppController {
       attraction: Math.round(55 + milan.kootas[3].points * 8 + milan.kootas[4].points * 2),
       mental: Math.round(50 + milan.kootas[2].points * 6 + milan.kootas[4].points * 5),
       longTerm: Math.round(45 + milan.kootas[6].points * 3 + milan.kootas[7].points * 1.5 + milan.kootas[5].points * 2),
-      overall: milan.percentage
+      overall: milan.percentage,
+      calculatedAt: new Date().toISOString()
     };
+    this.compatData = result;
+    this.persist('marriageCompat', { p1Input, p2Input, calculatedAt: result.calculatedAt });
+    if (window.CosmicReportService) window.CosmicReportService.updateSectionPills();
+    return result;
   }
 
   render() { applyLanguage(this.i18n.lang); }
@@ -1412,36 +1436,7 @@ function showProphecyForm(pushState = true) {
   }, 650);
 }
 
-function dismissOpeningSplash(immediate = false) {
-  const splash = document.getElementById('openingSplash');
-  if (!splash || splash.dataset.done === '1') return;
-  splash.dataset.done = '1';
-  document.body.classList.remove('splash-open');
-  if (immediate) {
-    splash.classList.add('hidden');
-    return;
-  }
-  splash.classList.add('is-exiting');
-  const finish = () => splash.classList.add('hidden');
-  splash.addEventListener('animationend', (event) => {
-    if (event.target === splash) finish();
-  });
-  window.setTimeout(finish, 800);
-}
-
-function initOpeningSplash() {
-  const splash = document.getElementById('openingSplash');
-  if (!splash) return;
-  document.body.classList.add('splash-open');
-  const timer = window.setTimeout(() => dismissOpeningSplash(), 5000);
-  document.getElementById('skipSplashBtn')?.addEventListener('click', () => {
-    window.clearTimeout(timer);
-    dismissOpeningSplash();
-  });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  initOpeningSplash();
   const restoredInput = App.restore('profile');
   if (restoredInput && document.getElementById('userName')) {
     document.getElementById('userName').value = restoredInput.name || '';
@@ -2015,6 +2010,1174 @@ async function handleCompatSubmit(e) {
   showSection('sectionCompatResults');
 }
 
+/* ========================================================================== */
+/*                      TOAST NOTIFICATION HELPER SYSTEM                       */
+/* ========================================================================== */
+
+function showCosmicToast(message, type = 'info', duration = 4000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const icons = {
+    success: '✅',
+    error: '❌',
+    info: '✨',
+    loading: '⏳'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `cosmic-toast toast-${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || '✨'}</span>
+    <div class="toast-content">${message}</div>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-exit');
+    setTimeout(() => toast.remove(), 350);
+  }, duration);
+}
+
+function maskEmail(email) {
+  if (!email || typeof email !== 'string') return 'your email';
+  const clean = email.trim();
+  const atIdx = clean.indexOf('@');
+  if (atIdx <= 0) return clean;
+  const user = clean.substring(0, atIdx);
+  const domain = clean.substring(atIdx + 1);
+  const visible = user.length > 2 ? user.substring(0, 2) : user.charAt(0);
+  return `${visible}***@${domain}`;
+}
+
+/* ========================================================================== */
+/*                    CENTRALIZED COSMIC REPORT AGGREGATOR                    */
+/* ========================================================================== */
+
+class CosmicReportService {
+  static collectReportData() {
+    const p = App.profile;
+    if (!p) return null;
+
+    const numerology = NumerologyService.calcAll(p.name, p.dobStr, p.day);
+    const lifePeriods = App.generateLifePeriods();
+    const westernInterp = interpretWesternPersonality(p);
+    const vedicInterp = interpretVedic(p);
+
+    const reportData = {
+      generatedAt: new Date().toISOString(),
+      user: {
+        name: p.name || 'Cosmic Traveler',
+        dob: p.dobStr,
+        tob: p.tobStr,
+        pob: p.pobStr,
+        phone: p.phone || '',
+        email: p.email || '',
+        resolvedPlace: p.place || null
+      },
+      westernAstrology: {
+        ...p.western,
+        ...westernInterp
+      },
+      vedicAstrology: {
+        ...p.vedic,
+        ...vedicInterp
+      },
+      numerology: numerology,
+      mindAndEmotions: {
+        emotions: westernInterp.emotions,
+        mind: westernInterp.mind,
+        stressResponse: `${SIGN_PERSONALITY[p.western.moon.signIdx]?.challenges[0] || 'Restlessness'} under pressure; deliberate grounding and conscious mindfulness restore equilibrium.`,
+        intuition: `The Moon in ${p.vedic.nakshatra?.en} Nakshatra (${p.vedic.nakshatra?.lord} Lord) tunes your consciousness to ${p.vedic.nakshatra?.gana?.toLowerCase() || 'deep'} intuitive channels.`
+      },
+      lifePeriods: lifePeriods,
+      peakPeriods: lifePeriods.filter(x => x.isPeak || x.intensity >= 75),
+      challengePeriods: lifePeriods.filter(x => x.isChallenge || x.intensity <= 58),
+      marriageCompatibility: App.compatData || null,
+      kundaliMilan: App.kundaliMilanData || null
+    };
+
+    App.reportData = reportData;
+    this.updateSectionPills();
+    return reportData;
+  }
+
+  static updateSectionPills() {
+    const hasProfile = !!App.profile;
+    const hasCompat = !!App.compatData;
+    const hasMilan = !!App.kundaliMilanData;
+
+    const setPill = (id, active, isExtra = false) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('active', active);
+      if (isExtra && active) el.classList.add('pill-gold');
+      const dot = el.querySelector('.dot');
+      if (dot) dot.textContent = active ? '✓' : '+';
+    };
+
+    setPill('pillCosmic', hasProfile);
+    setPill('pillVedic', hasProfile);
+    setPill('pillNumerology', hasProfile);
+    setPill('pillMind', hasProfile);
+    setPill('pillPeriods', hasProfile);
+    setPill('pillMarriage', hasCompat, true);
+    setPill('pillKundali', hasMilan, true);
+  }
+}
+
+window.CosmicReportService = CosmicReportService;
+
+/* ========================================================================== */
+/*                    PROFESSIONAL PDF GENERATION ENGINE                       */
+/* ========================================================================== */
+
+class PDFGeneratorService {
+  static async ensureJsPdf() {
+    if (window.jspdf && window.jspdf.jsPDF) {
+      return window.jspdf.jsPDF;
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.onload = () => {
+        if (window.jspdf && window.jspdf.jsPDF) resolve(window.jspdf.jsPDF);
+        else reject(new Error('jsPDF engine could not be initialized.'));
+      };
+      script.onerror = () => reject(new Error('Failed to load PDF engine.'));
+      document.head.appendChild(script);
+    });
+  }
+
+  static async createDocument(reportData) {
+    const jsPDF = await this.ensureJsPdf();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true
+    });
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const marginLeft = 14;
+    const marginRight = 14;
+    const usableWidth = pageWidth - marginLeft - marginRight; // 182mm
+    const marginBottom = 20;
+
+    let curY = 24;
+
+    const checkPageBreak = (neededHeight) => {
+      if (curY + neededHeight > pageHeight - marginBottom) {
+        doc.addPage();
+        curY = 22;
+        drawContentPageHeader();
+        return true;
+      }
+      return false;
+    };
+
+    const drawContentPageHeader = () => {
+      doc.setFillColor(255, 209, 102);
+      doc.rect(0, 0, pageWidth, 2.5, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text('PROPHECY', marginLeft, 11.5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Personalized Cosmic Report', marginLeft + 24, 11.5);
+
+      const dateStr = reportData.generatedAt ? new Date(reportData.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      doc.text(dateStr, pageWidth - marginRight, 11.5, { align: 'right' });
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.line(marginLeft, 14.5, pageWidth - marginRight, 14.5);
+    };
+
+    const drawSectionBanner = (title, kicker = 'PROPHECY INSIGHT') => {
+      checkPageBreak(18);
+      doc.setFillColor(15, 23, 42);
+      doc.roundedRect(marginLeft, curY, usableWidth, 12, 2, 2, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(76, 201, 240);
+      doc.text(kicker.toUpperCase(), marginLeft + 5, curY + 4.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10.5);
+      doc.setTextColor(255, 209, 102);
+      doc.text(title, marginLeft + 5, curY + 9.5);
+
+      curY += 16;
+    };
+
+    const drawCard = (x, y, w, h, bgR = 248, bgG = 250, bgB = 252, borderR = 226, borderG = 232, borderB = 240) => {
+      doc.setFillColor(bgR, bgG, bgB);
+      doc.setDrawColor(borderR, borderG, borderB);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(x, y, w, h, 2, 2, 'FD');
+    };
+
+    // ==========================================
+    // PAGE 1: COVER PAGE (Dark Cosmic Design)
+    // ==========================================
+    doc.setFillColor(7, 9, 19);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    doc.setDrawColor(255, 209, 102);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(12, 12, 186, 273, 4, 4, 'S');
+
+    doc.setDrawColor(76, 201, 240);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(15, 15, 180, 267, 3, 3, 'S');
+
+    const centerX = 105;
+    const emblemY = 56;
+    doc.setDrawColor(255, 209, 102);
+    doc.setLineWidth(0.4);
+    doc.circle(centerX, emblemY, 22, 'S');
+    doc.setDrawColor(76, 201, 240);
+    doc.setLineWidth(0.2);
+    doc.circle(centerX, emblemY, 18, 'S');
+    doc.setDrawColor(247, 37, 133);
+    doc.circle(centerX, emblemY, 14, 'S');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 209, 102);
+    doc.text('✦  P  ✦', centerX, emblemY + 1.5, { align: 'center' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(26);
+    doc.setTextColor(255, 209, 102);
+    doc.text('PROPHECY', centerX, 92, { align: 'center' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(76, 201, 240);
+    doc.text('PREMIUM ASTROLOGY • VEDIC JYOTISH • NUMEROLOGY', centerX, 98, { align: 'center' });
+
+    doc.setDrawColor(255, 209, 102);
+    doc.setLineWidth(0.5);
+    doc.line(65, 104, 145, 104);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('YOUR PERSONAL COSMIC REPORT', centerX, 116, { align: 'center' });
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10.5);
+    doc.setTextColor(203, 213, 225);
+    doc.text('A personalized journey through your cosmic blueprint', centerX, 123, { align: 'center' });
+
+    const cardY = 142;
+    const cardH = 78;
+    doc.setFillColor(15, 23, 42);
+    doc.setDrawColor(255, 209, 102);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(28, cardY, 154, cardH, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(255, 209, 102);
+    doc.text(reportData.user.name || 'Cosmic Traveler', centerX, cardY + 12, { align: 'center' });
+
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.15);
+    doc.line(40, cardY + 16, 170, cardY + 16);
+
+    const userMeta = [
+      { label: 'Date of Birth:', val: reportData.user.dob || '—' },
+      { label: 'Time of Birth:', val: reportData.user.tob ? `${reportData.user.tob} (Local)` : '12:00 (Standard Solar Noon)' },
+      { label: 'Place of Birth:', val: reportData.user.pob || 'Global' },
+      { label: 'Coordinates:', val: reportData.user.resolvedPlace?.lat != null ? `${reportData.user.resolvedPlace.lat.toFixed(2)}° N, ${reportData.user.resolvedPlace.lon.toFixed(2)}° E (${reportData.user.resolvedPlace.tz || 'UTC'})` : 'Resolved Ephemeris' },
+      { label: 'Report Date:', val: new Date(reportData.generatedAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }
+    ];
+
+    let metaY = cardY + 24;
+    userMeta.forEach(item => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(76, 201, 240);
+      doc.text(item.label, 36, metaY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(248, 250, 252);
+      doc.text(item.val, 82, metaY);
+
+      metaY += 9;
+    });
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9.5);
+    doc.setTextColor(255, 209, 102);
+    doc.text('"Your stars may guide you, but your choices shape your destiny."', centerX, 248, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('— PROPHECY CELESTIAL ARCHIVE —', centerX, 254, { align: 'center' });
+
+    // ==========================================
+    // PAGE 2: SECTION 1 — COSMIC PROFILE
+    // ==========================================
+    doc.addPage();
+    curY = 22;
+    drawContentPageHeader();
+
+    drawSectionBanner('SECTION 1 — COSMIC PROFILE & CELESTIAL IDENTITY', 'COSMIC FOUNDATION');
+
+    const dualBoxH = 34;
+    const colW = (usableWidth - 6) / 2;
+
+    drawCard(marginLeft, curY, colW, dualBoxH, 240, 249, 255, 186, 230, 253);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(2, 132, 199);
+    doc.text('WESTERN ASTROLOGY (Tropical)', marginLeft + 4, curY + 6);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 23, 42);
+    const w = reportData.westernAstrology || {};
+    doc.text(`Sun: ${w.sun?.sign?.en || '—'} (${w.sun?.degree ? w.sun.degree.toFixed(1) + '°' : ''}, House ${w.sun?.house || 1})`, marginLeft + 4, curY + 12);
+    doc.text(`Moon: ${w.moon?.sign?.en || '—'} (${w.moon?.degree ? w.moon.degree.toFixed(1) + '°' : ''}, House ${w.moon?.house || 1})`, marginLeft + 4, curY + 17);
+    doc.text(`Ascendant: ${w.ascendant?.sign?.en || '—'} (${w.ascendant?.degree ? w.ascendant.degree.toFixed(1) + '°' : ''})`, marginLeft + 4, curY + 22);
+    doc.text(`Midheaven: ${w.midheaven?.sign?.en || '—'} (House 10)`, marginLeft + 4, curY + 27);
+
+    const vedicX = marginLeft + colW + 6;
+    drawCard(vedicX, curY, colW, dualBoxH, 255, 251, 235, 254, 215, 170);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(180, 83, 9);
+    doc.text('VEDIC ASTROLOGY (Sidereal Lahiri)', vedicX + 4, curY + 6);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 23, 42);
+    const v = reportData.vedicAstrology || {};
+    doc.text(`Janma Rashi: ${v.rashi?.sign?.en || '—'} (${v.rashi?.sign?.hi || ''}) • Lord: ${v.rashiLord || '—'}`, vedicX + 4, curY + 12);
+    doc.text(`Nakshatra: ${v.nakshatra?.en || '—'} (${v.nakshatra?.hi || ''}) • Pada ${v.pada || 1}`, vedicX + 4, curY + 17);
+    doc.text(`Lagna: ${v.lagna?.sign?.en || '—'} (${v.lagna?.sign?.hi || ''} लग्न) • Lord: ${v.lagnaLord || '—'}`, vedicX + 4, curY + 22);
+    doc.text(`Lahiri Ayanamsa: ${v.ayanamsa ? v.ayanamsa.toFixed(2) + '°' : '23.85°'} • Gana: ${v.nakshatra?.gana || '—'}`, vedicX + 4, curY + 27);
+
+    curY += dualBoxH + 6;
+
+    checkPageBreak(40);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Western Planetary Placements (Tropical Zodiac)', marginLeft, curY);
+    curY += 4;
+
+    const wHeaders = ['Body', 'Sign & Degree', 'House', 'Strengths', 'Keywords'];
+    const wColWidths = [24, 38, 16, 44, 60];
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(marginLeft, curY, usableWidth, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 209, 102);
+
+    let curColX = marginLeft + 2;
+    wHeaders.forEach((h, i) => {
+      doc.text(h, curColX, curY + 4.2);
+      curColX += wColWidths[i];
+    });
+    curY += 6;
+
+    const westernRows = [
+      { name: 'Sun', p: w.sun, kw: 'Core identity, vitality, life purpose' },
+      { name: 'Moon', p: w.moon, kw: 'Emotions, intuition, inner needs' },
+      { name: 'Ascendant', p: w.ascendant, kw: 'Outward persona, approach to life' },
+      { name: 'Mercury', p: w.mercury, kw: 'Thinking, communication, logic' },
+      { name: 'Venus', p: w.venus, kw: 'Love, beauty, values, attraction' },
+      { name: 'Mars', p: w.mars, kw: 'Drive, action, energy, courage' },
+      { name: 'Jupiter', p: w.jupiter, kw: 'Wisdom, luck, expansion, growth' },
+      { name: 'Saturn', p: w.saturn, kw: 'Discipline, structure, karma' },
+      { name: 'Uranus', p: w.uranus, kw: 'Innovation, freedom, breakthroughs' },
+      { name: 'Neptune', p: w.neptune, kw: 'Spirituality, dreams, imagination' },
+      { name: 'Pluto', p: w.pluto, kw: 'Transformation, power, rebirth' }
+    ];
+
+    westernRows.forEach((r, idx) => {
+      const pl = r.p || {};
+      const signName = pl.sign?.en || '—';
+      const degStr = pl.degree != null ? `${pl.degree.toFixed(1)}°` : '';
+      const strengths = (SIGN_PERSONALITY[pl.signIdx]?.strengths || []).slice(0, 2).join(', ');
+
+      const rowBg = idx % 2 === 0 ? 255 : 248;
+      doc.setFillColor(rowBg, rowBg, rowBg);
+      doc.rect(marginLeft, curY, usableWidth, 5.2, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.2);
+      doc.setTextColor(15, 23, 42);
+      doc.text(r.name, marginLeft + 2, curY + 3.8);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      doc.text(`${signName} ${degStr}`, marginLeft + 2 + wColWidths[0], curY + 3.8);
+      doc.text(`H${pl.house || 1}`, marginLeft + 2 + wColWidths[0] + wColWidths[1], curY + 3.8);
+      doc.text(strengths, marginLeft + 2 + wColWidths[0] + wColWidths[1] + wColWidths[2], curY + 3.8);
+      doc.text(r.kw, marginLeft + 2 + wColWidths[0] + wColWidths[1] + wColWidths[2] + wColWidths[3], curY + 3.8);
+
+      curY += 5.2;
+    });
+
+    curY += 4;
+
+    checkPageBreak(22);
+    drawCard(marginLeft, curY, usableWidth, 18, 248, 250, 252);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(180, 83, 9);
+    doc.text('CORE STRENGTHS:', marginLeft + 4, curY + 5.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    doc.text((reportData.westernAstrology.strengths || []).join(' • ') || 'Leadership, Loyalty, Resilience', marginLeft + 38, curY + 5.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(190, 24, 93);
+    doc.text('GROWTH AREAS:', marginLeft + 4, curY + 11.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    doc.text((reportData.westernAstrology.challenges || []).join(' • ') || 'Patience, Avoiding overcritical thought', marginLeft + 38, curY + 11.5);
+
+    curY += 22;
+
+    checkPageBreak(40);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Vedic Planetary Positions (Grahas in Bhavas · Sidereal)', marginLeft, curY);
+    curY += 4;
+
+    const vHeaders = ['Graha', 'Rashi (Sign)', 'Bhava', 'Rashi Lord', 'Karaka (Signification)'];
+    const vColWidths = [30, 42, 18, 30, 62];
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(marginLeft, curY, usableWidth, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 209, 102);
+
+    let curVColX = marginLeft + 2;
+    vHeaders.forEach((h, i) => {
+      doc.text(h, curVColX, curY + 4.2);
+      curVColX += vColWidths[i];
+    });
+    curY += 6;
+
+    const vedicRows = [
+      { name: 'Surya (Sun)', p: v.sun, kw: 'Atma, soul, vitality, father, authority' },
+      { name: 'Chandra (Moon)', p: v.moon, kw: 'Manas, mind, emotions, mother' },
+      { name: 'Mangal (Mars)', p: v.mars, kw: 'Courage, energy, property, siblings' },
+      { name: 'Budha (Mercury)', p: v.mercury, kw: 'Buddhi, intellect, speech, business' },
+      { name: 'Guru (Jupiter)', p: v.jupiter, kw: 'Dharma, wisdom, fortune, expansion' },
+      { name: 'Shukra (Venus)', p: v.venus, kw: 'Luxury, love, art, relationships' },
+      { name: 'Shani (Saturn)', p: v.saturn, kw: 'Karma, discipline, endurance, longevity' },
+      { name: 'Rahu (North Node)', p: v.rahu, kw: 'Ambition, worldly expansion, innovation' },
+      { name: 'Ketu (South Node)', p: v.ketu, kw: 'Moksha, detachment, spiritual wisdom' }
+    ];
+
+    vedicRows.forEach((r, idx) => {
+      const pl = r.p || {};
+      const signName = pl.sign?.en ? `${pl.sign.en} (${pl.sign.hi || ''})` : '—';
+      const degStr = pl.degree != null ? `${pl.degree.toFixed(1)}°` : '';
+      const lord = VEDIC_RASHI_LORDS[pl.signIdx] || '—';
+
+      const rowBg = idx % 2 === 0 ? 255 : 248;
+      doc.setFillColor(rowBg, rowBg, rowBg);
+      doc.rect(marginLeft, curY, usableWidth, 5.2, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.2);
+      doc.setTextColor(15, 23, 42);
+      doc.text(r.name, marginLeft + 2, curY + 3.8);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      doc.text(`${signName} ${degStr}`, marginLeft + 2 + vColWidths[0], curY + 3.8);
+      doc.text(`Bhava ${pl.house || 1}`, marginLeft + 2 + vColWidths[0] + vColWidths[1], curY + 3.8);
+      doc.text(lord, marginLeft + 2 + vColWidths[0] + vColWidths[1] + vColWidths[2], curY + 3.8);
+      doc.text(r.kw, marginLeft + 2 + vColWidths[0] + vColWidths[1] + vColWidths[2] + vColWidths[3], curY + 3.8);
+
+      curY += 5.2;
+    });
+
+    curY += 6;
+
+    // ==========================================
+    // PAGE 3: SECTION 2 (NUMEROLOGY) & SECTION 3 (MIND & EMOTIONS)
+    // ==========================================
+    doc.addPage();
+    curY = 22;
+    drawContentPageHeader();
+
+    drawSectionBanner('SECTION 2 — NUMEROLOGY & SACRED VIBRATIONS', 'NUMEROLOGICAL BLUEPRINT');
+
+    const numData = reportData.numerology || {};
+    const numCards = [
+      { title: 'Life Path Number', val: numData.lifePath, sub: 'Soul purpose & destiny track', desc: NumerologyService.meaning(numData.lifePath).en },
+      { title: 'Destiny Number', val: numData.destiny, sub: 'Outer expression & life mission', desc: NumerologyService.meaning(numData.destiny).en },
+      { title: 'Soul Urge Number', val: numData.soulUrge, sub: 'Heart desires & inner motivation', desc: NumerologyService.meaning(numData.soulUrge).en },
+      { title: 'Personality Number', val: numData.personality, sub: 'First impressions & public aura', desc: NumerologyService.meaning(numData.personality).en },
+      { title: 'Birthday Number', val: numData.birthday, sub: 'Innate talents from day of birth', desc: NumerologyService.meaning(numData.birthday).en },
+      { title: 'Personal Year', val: numData.personalYear, sub: 'Solar cycle vibration for this year', desc: NumerologyService.meaning(numData.personalYear).en }
+    ];
+
+    const numCardW = (usableWidth - 8) / 3;
+    const numCardH = 26;
+
+    numCards.forEach((c, idx) => {
+      const row = Math.floor(idx / 3);
+      const col = idx % 3;
+      const cardX = marginLeft + col * (numCardW + 4);
+      const cardY = curY + row * (numCardH + 4);
+
+      drawCard(cardX, cardY, numCardW, numCardH, 255, 255, 255, 226, 232, 240);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(180, 83, 9);
+      doc.text(String(c.val || '—'), cardX + 4, cardY + 9);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.2);
+      doc.setTextColor(15, 23, 42);
+      doc.text(c.title, cardX + 16, cardY + 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(c.sub, cardX + 16, cardY + 11.5);
+
+      doc.setFontSize(6.8);
+      doc.setTextColor(51, 65, 85);
+      const splitDesc = doc.splitTextToSize(c.desc || '', numCardW - 8);
+      doc.text(splitDesc.slice(0, 3), cardX + 4, cardY + 17);
+    });
+
+    curY += 2 * (numCardH + 4) + 6;
+
+    drawSectionBanner('SECTION 3 — MIND, EMOTIONS & INTUITIVE CHANNELS', 'PSYCHOLOGICAL ARCHITECTURE');
+
+    const mindData = reportData.mindAndEmotions || {};
+    const mindItems = [
+      { title: 'Mental Architecture (Mercury):', text: mindData.mind || `With ${w.mercury?.sign?.en} Mercury in House ${w.mercury?.house || 1}, your thinking style is analytical, structured, and clear.` },
+      { title: 'Emotional Core & Needs (Moon):', text: mindData.emotions || `${w.moon?.sign?.en} Moon rules your inner emotional life, giving you perceptive instincts and a need for genuine connection.` },
+      { title: 'Stress Response & Mitigation:', text: mindData.stressResponse || `Under pressure, conscious grounding and avoiding over-analysis restores harmony.` },
+      { title: 'Intuitive Channels (Nakshatra):', text: mindData.intuition || `The Moon in ${v.nakshatra?.en} Nakshatra (${v.nakshatra?.lord} Lord) tunes your consciousness to deep intuitive discernment.` }
+    ];
+
+    mindItems.forEach(item => {
+      checkPageBreak(16);
+      drawCard(marginLeft, curY, usableWidth, 14, 248, 250, 252);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.8);
+      doc.setTextColor(2, 132, 199);
+      doc.text(item.title, marginLeft + 4, curY + 5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(51, 65, 85);
+      const splitTxt = doc.splitTextToSize(item.text, usableWidth - 8);
+      doc.text(splitTxt.slice(0, 2), marginLeft + 4, curY + 9.5);
+
+      curY += 16;
+    });
+
+    curY += 4;
+
+    // ==========================================
+    // PAGE 4: SECTION 4 (LIFE PERIODS) & SECTION 5/6 (PEAK & CHALLENGE)
+    // ==========================================
+    doc.addPage();
+    curY = 22;
+    drawContentPageHeader();
+
+    drawSectionBanner('SECTION 4 — MAJOR LIFE PERIODS (VIMSHOTTARI DASHA)', 'CHRONOLOGICAL TIMELINE');
+
+    const dHeaders = ['Mahadasha', 'Years', 'Active Timeline', 'Status', 'Career', 'Money', 'Rel', 'Growth', 'Intensity'];
+    const dColWidths = [24, 14, 40, 20, 16, 16, 16, 16, 20];
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(marginLeft, curY, usableWidth, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 209, 102);
+
+    let curDColX = marginLeft + 2;
+    dHeaders.forEach((h, i) => {
+      doc.text(h, curDColX, curY + 4.2);
+      curDColX += dColWidths[i];
+    });
+    curY += 6;
+
+    const periodsList = reportData.lifePeriods || [];
+    periodsList.slice(0, 9).forEach((per, idx) => {
+      const isCur = per.period === 'current';
+      const sYear = per.startDate ? new Date(per.startDate).getFullYear() : '—';
+      const eYear = per.endDate ? new Date(per.endDate).getFullYear() : '—';
+
+      if (isCur) {
+        doc.setFillColor(254, 243, 199);
+      } else {
+        const rowBg = idx % 2 === 0 ? 255 : 248;
+        doc.setFillColor(rowBg, rowBg, rowBg);
+      }
+      doc.rect(marginLeft, curY, usableWidth, 5.2, 'F');
+
+      doc.setFont('helvetica', isCur ? 'bold' : 'normal');
+      doc.setFontSize(7.2);
+      doc.setTextColor(isCur ? 180 : 15, isCur ? 83 : 23, isCur ? 9 : 42);
+
+      doc.text(`${per.planet} Dasha`, marginLeft + 2, curY + 3.8);
+      doc.text(`${per.years} yrs`, marginLeft + 2 + dColWidths[0], curY + 3.8);
+      doc.text(`${sYear} – ${eYear}`, marginLeft + 2 + dColWidths[0] + dColWidths[1], curY + 3.8);
+      doc.text(per.period.toUpperCase(), marginLeft + 2 + dColWidths[0] + dColWidths[1] + dColWidths[2], curY + 3.8);
+      doc.text(`${per.career}%`, marginLeft + 2 + dColWidths[0] + dColWidths[1] + dColWidths[2] + dColWidths[3], curY + 3.8);
+      doc.text(`${per.money}%`, marginLeft + 2 + dColWidths[0] + dColWidths[1] + dColWidths[2] + dColWidths[3] + dColWidths[4], curY + 3.8);
+      doc.text(`${per.relationships}%`, marginLeft + 2 + dColWidths[0] + dColWidths[1] + dColWidths[2] + dColWidths[3] + dColWidths[4] + dColWidths[5], curY + 3.8);
+      doc.text(`${per.growth}%`, marginLeft + 2 + dColWidths[0] + dColWidths[1] + dColWidths[2] + dColWidths[3] + dColWidths[4] + dColWidths[5] + dColWidths[6], curY + 3.8);
+      doc.text(`${per.intensity}%`, marginLeft + 2 + dColWidths[0] + dColWidths[1] + dColWidths[2] + dColWidths[3] + dColWidths[4] + dColWidths[5] + dColWidths[6] + dColWidths[7], curY + 3.8);
+
+      curY += 5.2;
+    });
+
+    curY += 6;
+
+    drawSectionBanner('SECTION 5 — PERIODS OF POTENTIAL & GROWTH (PEAK CYCLES)', 'OPPORTUNITY WINDOWS');
+
+    const peakWindows = periodsList.filter(p => p.isPeak || p.intensity >= 75);
+    if (peakWindows.length > 0) {
+      const peakW = (usableWidth - 6) / Math.min(peakWindows.length, 3);
+      peakWindows.slice(0, 3).forEach((pk, idx) => {
+        const pkX = marginLeft + idx * (peakW + 3);
+        drawCard(pkX, curY, peakW, 22, 236, 253, 245, 167, 243, 208);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(4, 120, 87);
+        doc.text(`${pk.planet} Mahadasha`, pkX + 4, curY + 5.5);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.2);
+        doc.setTextColor(51, 65, 85);
+        const sY = pk.startDate ? new Date(pk.startDate).getFullYear() : '';
+        const eY = pk.endDate ? new Date(pk.endDate).getFullYear() : '';
+        doc.text(`Active: ${sY} – ${eY} (${pk.intensity}% Intensity)`, pkX + 4, curY + 10);
+        doc.text(`Key Focus: Expansion in career & personal growth.`, pkX + 4, curY + 15);
+      });
+      curY += 26;
+    } else {
+      drawCard(marginLeft, curY, usableWidth, 12, 248, 250, 252);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Balanced astrological progression across all Mahadasha cycles.', marginLeft + 4, curY + 7);
+      curY += 16;
+    }
+
+    drawSectionBanner('SECTION 6 — CHALLENGE PERIODS & RESILIENCE STRATEGIES', 'PREPARATION & RESILIENCE');
+
+    drawCard(marginLeft, curY, usableWidth, 22, 255, 241, 242, 254, 205, 211);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(190, 24, 93);
+    doc.text('CONSTRUCTIVE RESILIENCE FRAMEWORK:', marginLeft + 4, curY + 5.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.3);
+    doc.setTextColor(51, 65, 85);
+    const chalText = "Astrologically cautious windows are designed for strengthening, not suffering. Build financial reserves in advance, practice deliberate pacing, and view these intervals as foundational preparation periods for subsequent peak expansions.";
+    const splitChal = doc.splitTextToSize(chalText, usableWidth - 8);
+    doc.text(splitChal, marginLeft + 4, curY + 10);
+
+    curY += 26;
+
+    // ==========================================
+    // PAGE 5+ : CONDITIONAL SECTIONS (IF PRESENT)
+    // ==========================================
+
+    if (reportData.marriageCompatibility) {
+      doc.addPage();
+      curY = 22;
+      drawContentPageHeader();
+
+      drawSectionBanner('SECTION 7 — MARRIAGE COMPATIBILITY ANALYSIS', 'TWO-PROFILE RELATIONSHIP DYNAMICS');
+
+      const mc = reportData.marriageCompatibility;
+      const p1Name = mc.p1Input?.name || mc.p1?.name || 'Partner 1';
+      const p2Name = mc.p2Input?.name || mc.p2?.name || 'Partner 2';
+
+      drawCard(marginLeft, curY, usableWidth, 24, 253, 242, 248, 251, 207, 232);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(190, 24, 93);
+      doc.text(`${mc.overall || 75}% Overall Compatibility`, marginLeft + 6, curY + 9);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Compatibility between ${p1Name} & ${p2Name}`, marginLeft + 6, curY + 15);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Verdict: ${mc.overall >= 70 ? 'Strong Alignment & Harmonious Resonance' : mc.overall >= 55 ? 'Good Alignment with Conscious Effort' : 'Moderate Alignment — Communication Essential'}`, marginLeft + 6, curY + 20);
+
+      curY += 28;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('8-Dimension Relationship Scorecard', marginLeft, curY);
+      curY += 4;
+
+      const dimList = [
+        { label: 'Emotional Compatibility', val: mc.emotional || 70, desc: 'Mutual empathy, feeling felt, emotional safety' },
+        { label: 'Communication & Expression', val: mc.communication || 65, desc: 'Clarity in dialogue, intellect resonance' },
+        { label: 'Marriage Potential', val: mc.marriage || 75, desc: 'Dharma, family building, commitment durability' },
+        { label: 'Lifestyle Harmony', val: mc.lifestyle || 60, desc: 'Daily routines, habits, living preferences' },
+        { label: 'Financial Tendencies', val: mc.financial || 65, desc: 'Shared material values, wealth manifestation' },
+        { label: 'Attraction & Chemistry', val: mc.attraction || 70, desc: 'Physical magnetism, passion, vitality' },
+        { label: 'Mental Compatibility', val: mc.mental || 65, desc: 'Philosophical alignment, shared vision' },
+        { label: 'Long-Term Growth', val: mc.longTerm || 68, desc: 'Evolution through life changes, resilience' }
+      ];
+
+      dimList.forEach((dim, idx) => {
+        const rowBg = idx % 2 === 0 ? 255 : 248;
+        doc.setFillColor(rowBg, rowBg, rowBg);
+        doc.rect(marginLeft, curY, usableWidth, 6.5, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(15, 23, 42);
+        doc.text(dim.label, marginLeft + 3, curY + 4.5);
+
+        const barX = marginLeft + 65;
+        const barW = 50;
+        doc.setFillColor(226, 232, 240);
+        doc.rect(barX, curY + 2, barW, 2.5, 'F');
+        doc.setFillColor(190, 24, 93);
+        doc.rect(barX, curY + 2, (barW * Math.min(100, dim.val)) / 100, 2.5, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(190, 24, 93);
+        doc.text(`${dim.val}%`, barX + barW + 4, curY + 4.5);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.8);
+        doc.setTextColor(100, 116, 139);
+        doc.text(dim.desc, barX + barW + 18, curY + 4.5);
+
+        curY += 6.5;
+      });
+
+      curY += 6;
+    }
+
+    if (reportData.kundaliMilan) {
+      doc.addPage();
+      curY = 22;
+      drawContentPageHeader();
+
+      drawSectionBanner('SECTION 8 — TRADITIONAL VEDIC KUNDALI MILAN', 'ASHTAKOOTA (36 GUNAS)');
+
+      const km = reportData.kundaliMilan;
+      const g = km.groomInput || {};
+      const b = km.brideInput || {};
+      const res = km.result || {};
+
+      drawCard(marginLeft, curY, usableWidth, 26, 255, 251, 235, 254, 215, 170);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(180, 83, 9);
+      doc.text(`${res.totalPoints || 0} / 36 Points (${res.percentage || 0}%)`, marginLeft + 6, curY + 9);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Kundali Milan: ${g.name || 'Groom'} & ${b.name || 'Bride'}`, marginLeft + 6, curY + 16);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Traditional Verdict: ${res.verdict || 'Good compatibility'}`, marginLeft + 6, curY + 21);
+
+      curY += 30;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('Ashtakoota 8-Koota Detailed Breakdown', marginLeft, curY);
+      curY += 4;
+
+      const kHeaders = ['Koota Name', 'Score', 'Max', 'Percentage', 'Significance & Interpretation'];
+      const kColWidths = [32, 18, 16, 22, 94];
+
+      doc.setFillColor(15, 23, 42);
+      doc.rect(marginLeft, curY, usableWidth, 6, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(255, 209, 102);
+
+      let curKColX = marginLeft + 2;
+      kHeaders.forEach((h, i) => {
+        doc.text(h, curKColX, curY + 4.2);
+        curKColX += kColWidths[i];
+      });
+      curY += 6;
+
+      const kootaDescriptions = {
+        'Varna': 'Spiritual & social ego alignment, occupational compatibility',
+        'Vashya': 'Mutual influence, magnetic rapport, relationship balance',
+        'Tara': 'Birth star destiny, health, longevity, life-force connection',
+        'Yoni': 'Physical & instinctual compatibility, biological intimacy',
+        'Graha Maitri': 'Friendship between Moon sign lords, mental rapport',
+        'Gana': 'Temperament harmony (Deva / Manushya / Rakshasa nature)',
+        'Bhakoot': 'Emotional welfare, domestic peace, family prosperity',
+        'Nadi': 'Genetic and physiological resonance, health of progeny'
+      };
+
+      (res.kootas || []).forEach((k, idx) => {
+        const rowBg = idx % 2 === 0 ? 255 : 248;
+        doc.setFillColor(rowBg, rowBg, rowBg);
+        doc.rect(marginLeft, curY, usableWidth, 5.5, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.2);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`${k.en || k.name} (${k.hi || ''})`, marginLeft + 2, curY + 3.8);
+
+        doc.setTextColor(180, 83, 9);
+        doc.text(String(k.points), marginLeft + 2 + kColWidths[0], curY + 3.8);
+
+        doc.setTextColor(100, 116, 139);
+        doc.text(String(k.max), marginLeft + 2 + kColWidths[0] + kColWidths[1], curY + 3.8);
+
+        const pct = Math.round((k.points / k.max) * 100);
+        doc.setTextColor(pct >= 60 ? 4 : 190, pct >= 60 ? 120 : 24, pct >= 60 ? 87 : 93);
+        doc.text(`${pct}%`, marginLeft + 2 + kColWidths[0] + kColWidths[1] + kColWidths[2], curY + 3.8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(51, 65, 85);
+        doc.text(kootaDescriptions[k.name] || 'Vedic compatibility parameter', marginLeft + 2 + kColWidths[0] + kColWidths[1] + kColWidths[2] + kColWidths[3], curY + 3.8);
+
+        curY += 5.5;
+      });
+
+      curY += 6;
+
+      drawCard(marginLeft, curY, usableWidth, 22, 248, 250, 252);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.8);
+      doc.setTextColor(15, 23, 42);
+      doc.text('IMPORTANT VEDIC RELATIONSHIP CONSIDERATIONS:', marginLeft + 4, curY + 5.5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.2);
+      doc.setTextColor(51, 65, 85);
+      const kmNotes = "No astrological metric guarantees relationship success or failure. Real-world emotional maturity, shared values, and mutual respect always shape the outcome. Use Ashtakoota as reflective guidance rather than a fatalistic verdict.";
+      const splitKm = doc.splitTextToSize(kmNotes, usableWidth - 8);
+      doc.text(splitKm, marginLeft + 4, curY + 10);
+
+      curY += 26;
+    }
+
+    // FINAL DISCLAIMER BOX
+    checkPageBreak(24);
+    drawCard(marginLeft, curY, usableWidth, 18, 248, 250, 252, 203, 213, 225);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text('IMPORTANT DISCLAIMER & ETHICAL USAGE', marginLeft + 4, curY + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(100, 116, 139);
+    const discText = "Astrological insights in this report are interpretive guidance derived from deterministic ephemeris calculations. They are intended for self-reflection and personal awareness, not as substitutes for professional financial, medical, legal, or psychological counseling. Free will and personal choices shape your destiny.";
+    const splitDisc = doc.splitTextToSize(discText, usableWidth - 8);
+    doc.text(splitDisc, marginLeft + 4, curY + 9);
+
+    // WRITE NUMBERED FOOTERS
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 2; p <= totalPages; p++) {
+      doc.setPage(p);
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.line(marginLeft, pageHeight - 12, pageWidth - marginRight, pageHeight - 12);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text('PROPHECY • Interpretive Astrological Guidance', marginLeft, pageHeight - 7);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Page ${p} of ${totalPages}`, pageWidth - marginRight, pageHeight - 7, { align: 'right' });
+    }
+
+    return doc;
+  }
+
+  static async downloadPdf(reportData) {
+    const doc = await this.createDocument(reportData);
+    const userName = (reportData.user.name || 'Cosmic_Traveler').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `Cosmic_Report_${userName}_${dateStr}.pdf`;
+    doc.save(filename);
+    return filename;
+  }
+
+  static async getPdfBase64(reportData) {
+    const doc = await this.createDocument(reportData);
+    return doc.output('datauristring');
+  }
+}
+
+window.PDFGeneratorService = PDFGeneratorService;
+
+/* ========================================================================== */
+/*                    DASHBOARD REPORT UI & EMAIL MODAL LOGIC                  */
+/* ========================================================================== */
+
+function updateReportStatusBanner(message, type = 'info') {
+  const banner = document.getElementById('reportStatusMessage');
+  if (!banner) return;
+  if (!message) {
+    banner.classList.add('hidden');
+    banner.textContent = '';
+    return;
+  }
+  banner.className = `report-status-banner status-${type}`;
+  banner.textContent = message;
+  banner.classList.remove('hidden');
+}
+
+function handleGenerateReportClick() {
+  if (!App.profile) {
+    showCosmicToast('Generate your Cosmic Profile first to create your report.', 'error');
+    updateReportStatusBanner('Please generate your Cosmic Profile first to create your report.', 'info');
+    return;
+  }
+
+  const btn = document.getElementById('btnGenerateReport');
+  if (btn) {
+    btn.disabled = true;
+    btn.querySelector('.btn-text').textContent = 'Preparing Your Cosmic Report...';
+  }
+
+  setTimeout(() => {
+    const data = CosmicReportService.collectReportData();
+    if (btn) {
+      btn.disabled = false;
+      btn.querySelector('.btn-text').textContent = 'Generate My Report';
+    }
+
+    if (data) {
+      let sectionsCount = 6;
+      if (data.marriageCompatibility) sectionsCount++;
+      if (data.kundaliMilan) sectionsCount++;
+
+      updateReportStatusBanner(`✨ Your Personalized Cosmic Report is ready with ${sectionsCount} sections! You can now Download as PDF or Send to Your Email.`, 'success');
+      showCosmicToast('Your Cosmic Report has been prepared successfully!', 'success');
+    }
+  }, 400);
+}
+
+async function handleDownloadPdfClick() {
+  if (!App.profile) {
+    showCosmicToast('Generate your Cosmic Profile first to create your report.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnDownloadPdf');
+  const originalText = btn ? btn.querySelector('.btn-text').textContent : 'Download PDF';
+
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.querySelector('.btn-text').textContent = 'Generating PDF...';
+    }
+    showCosmicToast('Generating your high-definition PDF report...', 'loading', 3000);
+
+    const reportData = CosmicReportService.collectReportData();
+    const filename = await PDFGeneratorService.downloadPdf(reportData);
+
+    showCosmicToast(`Downloaded ${filename}!`, 'success');
+    updateReportStatusBanner(`✅ PDF Report successfully downloaded: ${filename}`, 'success');
+  } catch (error) {
+    console.error('[PDF GENERATION ERROR]', error);
+    showCosmicToast("We couldn't generate the PDF. Please try again.", 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.querySelector('.btn-text').textContent = originalText;
+    }
+  }
+}
+
+function handleEmailReportClick() {
+  if (!App.profile) {
+    showCosmicToast('Generate your Cosmic Profile first to create your report.', 'error');
+    return;
+  }
+
+  const email = App.profile.email || (document.getElementById('userEmail') ? document.getElementById('userEmail').value.trim() : '');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    showCosmicToast('Please add a valid email address before sending your report.', 'error');
+    return;
+  }
+
+  openEmailConfirmModal(email);
+}
+
+function openEmailConfirmModal(email) {
+  const modal = document.getElementById('emailConfirmModal');
+  const maskedEl = document.getElementById('modalMaskedEmail');
+  const loadingBox = document.getElementById('modalLoadingState');
+  const buttonsRow = document.getElementById('modalButtonsRow');
+
+  if (maskedEl) maskedEl.textContent = maskEmail(email);
+  if (loadingBox) loadingBox.classList.add('hidden');
+  if (buttonsRow) buttonsRow.classList.remove('hidden');
+
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeEmailConfirmModal() {
+  const modal = document.getElementById('emailConfirmModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleSendReportConfirmed() {
+  if (!App.profile) {
+    closeEmailConfirmModal();
+    showCosmicToast('Generate your Cosmic Profile first to create your report.', 'error');
+    return;
+  }
+
+  const email = App.profile.email || (document.getElementById('userEmail') ? document.getElementById('userEmail').value.trim() : '');
+  if (!email) {
+    closeEmailConfirmModal();
+    showCosmicToast('Please add your email address before sending your report.', 'error');
+    return;
+  }
+
+  const loadingBox = document.getElementById('modalLoadingState');
+  const loadingText = document.getElementById('modalLoadingText');
+  const buttonsRow = document.getElementById('modalButtonsRow');
+  const confirmBtn = document.getElementById('modalConfirmBtn');
+  const cancelBtn = document.getElementById('modalCancelBtn');
+
+  if (loadingBox) loadingBox.classList.remove('hidden');
+  if (buttonsRow) buttonsRow.classList.add('hidden');
+  if (confirmBtn) confirmBtn.disabled = true;
+  if (cancelBtn) cancelBtn.disabled = true;
+
+  try {
+    if (loadingText) loadingText.textContent = 'Preparing your report securely...';
+    const reportData = CosmicReportService.collectReportData();
+    const pdfBase64 = await PDFGeneratorService.getPdfBase64(reportData);
+
+    if (loadingText) loadingText.textContent = 'Sending your Cosmic Report...';
+
+    const userName = (reportData.user.name || 'Cosmic Traveler').trim();
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `Cosmic_Report_${userName.replace(/[^a-zA-Z0-9_-]/g, '_')}_${dateStr}.pdf`;
+
+    const response = await fetch('/api/send-report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        name: userName,
+        pdfBase64: pdfBase64,
+        filename: filename
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "We couldn't send your report. Please try again.");
+    }
+
+    closeEmailConfirmModal();
+    showCosmicToast('Your Cosmic Report has been sent successfully!', 'success', 5000);
+    updateReportStatusBanner(`✉ Cosmic Report sent successfully to ${maskEmail(email)}! Check your inbox/spam folder.`, 'success');
+  } catch (error) {
+    console.error('[SEND EMAIL ERROR]', error);
+    if (loadingBox) loadingBox.classList.add('hidden');
+    if (buttonsRow) buttonsRow.classList.remove('hidden');
+    if (confirmBtn) confirmBtn.disabled = false;
+    if (cancelBtn) cancelBtn.disabled = false;
+
+    showCosmicToast(error.message || "We couldn't send your report. Please try again.", 'error', 5000);
+  }
+}
+
+/* ========================================================================== */
+/*                          DOM EVENT BINDINGS FOR REPORT                     */
+/* ========================================================================== */
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Restore any previous compatibility sessions
+  const restoredMilan = App.restore('kundaliMilan');
+  if (restoredMilan && restoredMilan.groomInput && restoredMilan.brideInput) {
+    try {
+      App.kundaliMilan(restoredMilan.groomInput, restoredMilan.brideInput);
+    } catch (e) {}
+  }
+
+  const restoredCompat = App.restore('marriageCompat');
+  if (restoredCompat && restoredCompat.p1Input && restoredCompat.p2Input) {
+    try {
+      App.compatibilityMarriage(restoredCompat.p1Input, restoredCompat.p2Input);
+    } catch (e) {}
+  }
+
+  // Bind report action buttons
+  document.getElementById('btnGenerateReport')?.addEventListener('click', handleGenerateReportClick);
+  document.getElementById('btnDownloadPdf')?.addEventListener('click', handleDownloadPdfClick);
+  document.getElementById('btnEmailReport')?.addEventListener('click', handleEmailReportClick);
+
+  // Bind confirmation modal events
+  document.getElementById('modalCloseBtn')?.addEventListener('click', closeEmailConfirmModal);
+  document.getElementById('modalCancelBtn')?.addEventListener('click', closeEmailConfirmModal);
+  document.getElementById('modalConfirmBtn')?.addEventListener('click', handleSendReportConfirmed);
+  document.getElementById('emailConfirmModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'emailConfirmModal') closeEmailConfirmModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeEmailConfirmModal();
+    }
+  });
+
+  CosmicReportService.updateSectionPills();
+});
+
 window.handleKundaliSubmit = handleKundaliSubmit;
 window.handleCompatSubmit = handleCompatSubmit;
 window.__PROPHECY_ASTRONOMY__ = { julianDay, calcGST, calcAscendant, calcMidheaven, normDeg, getSignIndex, getSignDegree, estimateUTCOffsetMinutes };
+
