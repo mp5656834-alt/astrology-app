@@ -23,9 +23,50 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&family=Cinzel:wght@600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="car.css" />
+  <link rel="stylesheet" href="car.css?v=intro3" />
+  <style>
+    .opening-splash {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 99999 !important;
+      display: grid !important;
+      place-items: center !important;
+      background: #070913 !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    .opening-splash.hidden,
+    .opening-splash.is-exiting.hidden { display: none !important; }
+  </style>
 </head>
 <body>
+  <div id="openingSplash" class="opening-splash" role="dialog" aria-modal="true" aria-labelledby="splashTitle" aria-describedby="splashLine">
+    <div class="splash-void" aria-hidden="true">
+      <div class="splash-ring splash-ring-outer"></div>
+      <div class="splash-ring splash-ring-mid"></div>
+      <div class="splash-ring splash-ring-inner"></div>
+      <div class="splash-zodiac">
+        <span style="--i:0">♈</span><span style="--i:1">♉</span><span style="--i:2">♊</span><span style="--i:3">♋</span>
+        <span style="--i:4">♌</span><span style="--i:5">♍</span><span style="--i:6">♎</span><span style="--i:7">♏</span>
+        <span style="--i:8">♐</span><span style="--i:9">♑</span><span style="--i:10">♒</span><span style="--i:11">♓</span>
+      </div>
+      <div class="splash-nums">
+        <span style="--i:0">1</span><span style="--i:1">2</span><span style="--i:2">3</span><span style="--i:3">4</span>
+        <span style="--i:4">5</span><span style="--i:5">6</span><span style="--i:6">7</span><span style="--i:7">8</span>
+        <span style="--i:8">9</span><span style="--i:9">11</span><span style="--i:10">22</span><span style="--i:11">33</span>
+      </div>
+      <span class="splash-planet splash-planet-gold"></span>
+      <span class="splash-planet splash-planet-cyan"></span>
+      <span class="splash-planet splash-planet-magenta"></span>
+    </div>
+    <div class="splash-copy">
+      <p class="splash-kicker">Astrology · Numerology · Jyotish</p>
+      <h2 id="splashTitle">PROPHECY</h2>
+      <p id="splashLine" class="splash-line">The stars and numbers are aligning for you.</p>
+      <div class="splash-meter" aria-hidden="true"><span></span></div>
+    </div>
+    <button type="button" id="skipSplashBtn" class="splash-skip">Skip intro</button>
+  </div>
   <div id="calculationTransition" class="calculation-transition hidden" role="status" aria-live="polite" aria-label="Preparing your PROPHECY reading">
     <div class="transition-orbit"><span></span><span></span><span></span></div>
     <p class="transition-kicker">PROPHECY / COSMIC ENGINE</p>
@@ -82,7 +123,26 @@
 
     <main class="main-content">
 
-      <section id="prophecyIntro" class="prophecy-intro" aria-labelledby="prophecyIntroTitle"><div class="intro-constellation" aria-hidden="true"></div><div class="intro-content"><div class="intro-mark"><img src="assets/destiny_nexus_logo.jpg" alt="" /><span>PROPHECY</span></div><p class="intro-kicker">THE CELESTIAL ARCHIVE</p><h1 id="prophecyIntroTitle">PROPHECY</h1><p class="intro-line">Your story is written in the sky.</p><button id="enterProphecyBtn" class="prophecy-cta" type="button"><span>LET'S CHECK YOUR PROPHECY</span><span class="cta-arrow" aria-hidden="true">&#8594;</span></button></div></section>
+      <section id="prophecyIntro" class="prophecy-intro" aria-labelledby="prophecyIntroTitle">
+        <div class="intro-constellation" aria-hidden="true"></div>
+        <div class="intro-orbit" aria-hidden="true">
+          <span style="--i:0">♈</span><span style="--i:1">♉</span><span style="--i:2">♊</span><span style="--i:3">♋</span>
+          <span style="--i:4">♌</span><span style="--i:5">♍</span><span style="--i:6">♎</span><span style="--i:7">♏</span>
+          <span style="--i:8">♐</span><span style="--i:9">♑</span><span style="--i:10">♒</span><span style="--i:11">♓</span>
+        </div>
+        <div class="intro-num-orbit" aria-hidden="true">
+          <span style="--i:0">1</span><span style="--i:1">2</span><span style="--i:2">3</span><span style="--i:3">4</span>
+          <span style="--i:4">5</span><span style="--i:5">6</span><span style="--i:6">7</span><span style="--i:7">8</span>
+          <span style="--i:8">9</span><span style="--i:9">11</span><span style="--i:10">22</span><span style="--i:11">33</span>
+        </div>
+        <div class="intro-content">
+          <div class="intro-mark"><img src="assets/destiny_nexus_logo.jpg" alt="" /><span>PROPHECY</span></div>
+          <p class="intro-kicker">THE CELESTIAL ARCHIVE</p>
+          <h1 id="prophecyIntroTitle">PROPHECY</h1>
+          <p class="intro-line">Your story is written in the sky and in the numbers.</p>
+          <button id="enterProphecyBtn" class="prophecy-cta" type="button"><span>LET'S CHECK YOUR PROPHECY</span><span class="cta-arrow" aria-hidden="true">&#8594;</span></button>
+        </div>
+      </section>
 
       <!-- ============ 1. ONBOARDING & BIRTH DETAILS FORM ============ -->
       <section id="onboardingSection" class="onboarding-section hidden">
@@ -988,6 +1048,6 @@
     "inLanguage": ["en", "hi"]
   }
   </script>
-  <script src="car.js" defer></script>
+  <script src="car.js?v=intro3" defer></script>
 </body>
 </html>

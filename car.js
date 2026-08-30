@@ -1412,7 +1412,36 @@ function showProphecyForm(pushState = true) {
   }, 650);
 }
 
+function dismissOpeningSplash(immediate = false) {
+  const splash = document.getElementById('openingSplash');
+  if (!splash || splash.dataset.done === '1') return;
+  splash.dataset.done = '1';
+  document.body.classList.remove('splash-open');
+  if (immediate) {
+    splash.classList.add('hidden');
+    return;
+  }
+  splash.classList.add('is-exiting');
+  const finish = () => splash.classList.add('hidden');
+  splash.addEventListener('animationend', (event) => {
+    if (event.target === splash) finish();
+  });
+  window.setTimeout(finish, 800);
+}
+
+function initOpeningSplash() {
+  const splash = document.getElementById('openingSplash');
+  if (!splash) return;
+  document.body.classList.add('splash-open');
+  const timer = window.setTimeout(() => dismissOpeningSplash(), 5000);
+  document.getElementById('skipSplashBtn')?.addEventListener('click', () => {
+    window.clearTimeout(timer);
+    dismissOpeningSplash();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initOpeningSplash();
   const restoredInput = App.restore('profile');
   if (restoredInput && document.getElementById('userName')) {
     document.getElementById('userName').value = restoredInput.name || '';
